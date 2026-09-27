@@ -1,0 +1,95 @@
+# =============================================================================
+# .gitignore — Wine Quality AI System (PRISM, Apriori, Fuzzy, Genetic Algorithm)
+# =============================================================================
+
+# --- Bytecode y Cache de Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# --- Entornos Virtuales ---
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# --- Paquetes y Distribución ---
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# --- Jupyter Notebooks ---
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# --- Archivos de Registro y Debug (Logs) ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Variables de Entorno y Secretos ---
+.env
+.env.local
+.env.*.local
+*.env
+
+# --- Configuración de IDEs y Editores ---
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+
+# --- Archivos del Sistema Operativo ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# --- Archivos Comprimidos Temporales / Backups ---
+*.zip
+*.tar.gz
+*.rar
+*.bak
+
+# --- Pruebas y Cobertura ---
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+
+# --- Excepciones / Preservar Artefactos del Proyecto ---
+# Mantener los datasets y resultados necesarios para ejecución y demo
+!wine+quality/
+!wine+quality/*.csv
+!wine+quality/*.names
+!data/
+!results/
+!results/*.csv
+!results/*.json
+!results/plots/
+!results/plots/*.png
