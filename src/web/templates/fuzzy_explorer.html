@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Explorador Visual de Lógica Difusa Mamdani (XAI) — Wine Quality AI</title>
+  
+  <!-- Dependencias Externas (Tailwind CSS, Lucide Icons, KaTeX) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+  <!-- ===================================================================== -->
+  <!-- SISTEMA DE DISEÑO: TOKENS DE COLOR (CSS VARIABLES EN CABECERA)       -->
+  <!-- TEMA: Zinc / Slate Oscuro con Acentos Borgoña & Oro Editorial         -->
+  <!-- ===================================================================== -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+    
+    :root {
+      /* Fondos y Superficies Neutras (Zinc/Slate) */
+      --color-bg-base: #09090b;             /* zinc-950 */
+      --color-surface-card: #18181b;        /* zinc-900 */
+      --color-surface-elevated: #27272a;    /* zinc-800 */
+      --color-surface-input: #121215;       /* zinc-925 */
+      
+      /* Bordes y Separadores */
+      --color-border-subtle: #27272a;       /* zinc-800 */
+      --color-border-prominent: #3f3f46;    /* zinc-700 */
+      --color-border-hover: #52525b;        /* zinc-600 */
+
+      /* Acentos Enológicos y Matemáticos */
+      --color-burgundy: #722F37;
+      --color-burgundy-light: #9f1239;
+      --color-gold: #d97706;
+      --color-gold-light: #f59e0b;
+
+      /* Tipografía y Contraste (WCAG AAA >= 7:1) */
+      --color-text-primary: #fafafa;
+      --color-text-secondary: #d4d4d8;
+      --color-text-muted: #a1a1aa;
+
+      /* Semántica de Calidad */
+      --status-alta-bg: #064e3b;
+      --status-alta-border: #10b981;
+      --status-alta-text: #a7f3d0;
+
+      --status-media-bg: #451a03;
+      --status-media-border: #f59e0b;
+      --status-media-text: #fde68a;
+
+      --status-baja-bg: #4c0519;
+      --status-baja-border: #f43f5e;
+      --status-baja-text: #fecdd3;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--color-bg-base);
+      color: var(--color-text-primary);
+      overflow-x: hidden;
+    }
+
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Sliders personalizados */
+    input[type=range] {
+      accent-color: var(--color-gold-light);
+    }
+    input[type=range]::-webkit-slider-thumb {
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: #fafafa;
+      cursor: pointer;
+      border: 2px solid var(--color-burgundy);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+      transition: transform 0.1s ease;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+    }
+
+    /* Transición suave para el cajón retráctil de parámetros */
+    .drawer-transition {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Animación de pulso para puntos de intersección */
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.8; }
+    }
+    .pulsing-intersection {
+      transform-origin: center;
+      animation: pulse-dot 2s infinite ease-in-out;
+    }
+
+    /* Estilo de tarjeta plana editorial */
+    .card-editorial {
+      background-color: var(--color-surface-card);
+      border: 1px solid var(--color-border-subtle);
+    }
+
+    /* Resaltado del cuello de botella */
+    .bottleneck-highlight {
+      border: 2px solid #f59e0b !important;
+      background-color: rgba(245, 158, 11, 0.12) !important;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+    }
+
+    /* Cursor de arrastre interactivo en el canvas SVG */
+    .svg-interactive-canvas {
+      cursor: ew-resize;
+    }
+
+    /* Scrollbars delgados */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #09090b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #27272a;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3f3f46;
+    }
+  </style>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            zinc: {
+              850: '#1f1f23',
+              925: '#121215',
+              950: '#09090b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen antialiased flex flex-col bg-zinc-950 selection:bg-amber-600 selection:text-white">
+
+  <!-- ===================================================================== -->
+  <!-- BARRA DE NAVEGACIÓN SUPERIOR (HEADER)                                 -->
+  <!-- ===================================================================== -->
+  <header class="sticky top-0 z-40 bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800 px-4 lg:px-6 py-3">
+    <div class="max-w-[1700px] mx-auto flex items-center justify-between gap-4">
+      
+      <!-- Lado Izquierdo: Botón Toggle Cajón + Navegación + Título -->
+      <div class="flex items-center gap-3">
+        <!-- Botón para alternar cajón de parámetros -->
+        <button id="btn-toggle-drawer" onclick="toggleDrawer()" 
+                class="px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-amber-500/50 hover:bg-zinc-850 text-zinc-200 transition-all flex items-center gap-2 text-xs font-bold shadow-sm"
+                title="Mostrar u ocultar panel de parámetros químicos">
+          <i data-lucide="sliders" class="w-4 h-4 text-amber-500" id="icon-toggle-drawer"></i>
+          <span id="text-toggle-drawer">Ocultar Parámetros</span>
+          <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+        </button>
+
+        <a href="/" class="px-3 py-2 rounded-lg bg-zinc-900/60 border border-zinc-800 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-all flex items-center gap-1.5 text-xs font-semibold">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Dashboard General</span>
+        </a>
+
+        <!-- Botón de Exportar Instantánea SVG -->
+        <button onclick="exportarInstantaneaFuzzy()" 
+                class="px-2.5 py-2 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 hover:bg-zinc-800 text-zinc-300 transition-all flex items-center gap-1.5 text-xs font-semibold shadow-sm"
+                title="Descargar análisis difuso completo como imagen vectorial SVG">
+          <i data-lucide="download" class="w-4 h-4 text-amber-500"></i>
+          <span class="hidden md:inline">Exportar SVG</span>
+        </button>
+
+        <div class="h-5 w-px bg-zinc-800 hidden md:block"></div>
+
+        <div>
+          <h1 class="text-base font-black tracking-tight text-zinc-100 flex items-center gap-2">
+            <i data-lucide="microscope" class="w-4 h-4 text-amber-500"></i>
+            Explorador Matemático
+          </h1>
+        </div>
+      </div>
+
+      <!-- Lado Derecho: RESULTADO EN SEGUNDO PLANO (Badge Compacto y Elegante) -->
+      <div class="flex items-center gap-2 sm:gap-3 bg-zinc-900/90 border border-zinc-800 rounded-xl px-3 py-1.5 shadow-sm">
+        <div class="text-right hidden sm:block">
+          <div class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Resultado Defuzzificado</div>
+          <div class="text-xs font-mono font-bold text-zinc-300">
+            CoG: <span id="badge-centroide-val" class="text-amber-400 font-extrabold text-sm">--</span> / 10
+          </div>
+        </div>
+
+        <div class="h-7 w-px bg-zinc-800 hidden sm:block"></div>
+
+        <!-- Badge de Calidad -->
+        <div id="badge-calidad-container" class="flex items-center gap-2 px-3 py-1 rounded-lg bg-zinc-800/80 border border-zinc-700">
+          <div id="badge-calidad-dot" class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></div>
+          <div>
+            <span id="badge-calidad-text" class="text-xs font-black tracking-wide text-zinc-100">Evaluando...</span>
+          </div>
+        </div>
+
+        <!-- Indicador de Reglas Activas (Estrictamente en una sola línea) -->
+        <div class="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-950 border border-zinc-800 text-[11px] font-mono text-zinc-400 whitespace-nowrap flex-shrink-0">
+          <i data-lucide="git-commit" class="w-3.5 h-3.5 text-amber-500 flex-shrink-0"></i>
+          <span class="whitespace-nowrap"><span id="badge-reglas-count" class="text-zinc-200 font-bold whitespace-nowrap">--</span>&nbsp;act.</span>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- CONTENEDOR PRINCIPAL: CAJÓN DE PARÁMETROS + CANVAS DE LÓGICA DIFUSA   -->
+  <!-- ===================================================================== -->
+  <div class="flex-1 flex max-w-[1700px] w-full mx-auto relative overflow-hidden">
+
+    <!-- =================================================================== -->
+    <!-- BARRA LATERAL / CAJÓN RETRÁCTIL DE PARÁMETROS (MINIMIZABLE)         -->
+    <!-- =================================================================== -->
+    <aside id="sidebar-drawer" 
+           class="drawer-transition w-80 lg:w-96 flex-shrink-0 bg-zinc-900 border-r border-zinc-800 flex flex-col h-[calc(100vh-61px)] sticky top-[61px] z-30">
+      
+      <!-- Cabecera del Cajón -->
+      <div class="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/90">
+        <div class="flex items-center gap-2">
+          <i data-lucide="flask-conical" class="w-4 h-4 text-amber-500"></i>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-zinc-200">Parámetros Químicos (11)</h2>
+        </div>
+        <button onclick="toggleDrawer()" class="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 lg:hidden">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Presets de Muestras Rápidas (Estilo Homólogo a Pantalla Principal) -->
+      <div class="px-4 py-3 border-b border-zinc-800 bg-zinc-925">
+        <div class="text-[10px] font-bold uppercase tracking-wider text-amber-500/90 mb-2.5 flex items-center justify-between">
+          <span class="flex items-center gap-1.5 font-bold">
+            <i data-lucide="bookmark" class="w-3.5 h-3.5 text-amber-500"></i>
+            Perfiles Enológicos Predefinidos
+          </span>
+        </div>
+        <div class="flex flex-col gap-2">
+          <button onclick="cargarPreset('gran_reserva')" 
+                  class="px-3 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-emerald-500/50 text-emerald-300 text-xs font-bold transition-all flex items-center gap-2.5 shadow-sm text-left w-full">
+            <i data-lucide="crown" class="w-4 h-4 text-emerald-400 flex-shrink-0"></i>
+            <span>Gran Reserva (Alta)</span>
+          </button>
+          <button onclick="cargarPreset('vino_comercial')" 
+                  class="px-3 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-amber-500/50 text-amber-300 text-xs font-bold transition-all flex items-center gap-2.5 shadow-sm text-left w-full">
+            <i data-lucide="wine" class="w-4 h-4 text-amber-400 flex-shrink-0"></i>
+            <span>Mesa Estándar (Media)</span>
+          </button>
+          <button onclick="cargarPreset('vino_picado')" 
+                  class="px-3 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-rose-500/50 text-rose-300 text-xs font-bold transition-all flex items-center gap-2.5 shadow-sm text-left w-full">
+            <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400 flex-shrink-0"></i>
+            <span>Vino Picado (Baja)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lista de Sliders de las 11 Variables (Scrollable) -->
+      <div id="sliders-container" class="flex-1 overflow-y-auto p-4 space-y-4">
+        <!-- Renderizado dinámico de sliders por JS -->
+        <div class="text-center py-8 text-zinc-500 text-xs">Cargando variables fisicoquímicas...</div>
+      </div>
+
+      <!-- Pie del Cajón: Botón Reset -->
+      <div class="p-3 border-t border-zinc-800 bg-zinc-900/95 flex items-center justify-between text-xs">
+        <span class="text-[11px] text-zinc-400">Valores normalizados</span>
+        <button onclick="resetearValores()" 
+                class="px-2.5 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 flex items-center gap-1.5 text-[11px] font-semibold transition-all">
+          <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Restablecer
+        </button>
+      </div>
+    </aside>
+
+    <!-- =================================================================== -->
+    <!-- PROTAGONISTA: CANVAS DE PROCESAMIENTO VISUAL DE LÓGICA DIFUSA       -->
+    <!-- =================================================================== -->
+    <main id="main-content" class="flex-1 min-w-0 p-4 lg:p-6 space-y-6 overflow-y-auto">
+
+      <!-- ================================================================= -->
+      <!-- ETAPA 1: FUZZIFICACIÓN DINÁMICA (FUNCIONES DE PERTENENCIA)        -->
+      <!-- ================================================================= -->
+      <section class="card-editorial rounded-2xl p-5 lg:p-6 shadow-lg relative">
+        <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 mb-4 border-b border-zinc-800 gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center font-black text-xs font-mono">1</span>
+              <h2 class="text-base font-black text-zinc-100 tracking-tight">
+                Fuzzificación Continua: Funciones de Pertenencia (<span class="font-mono text-amber-400">μ</span>)
+              </h2>
+            </div>
+            <p class="text-xs text-zinc-300 mt-1">
+              Observa cómo el valor numérico continuo cae simultáneamente en <strong class="text-sky-400">Bajo</strong>, <strong class="text-amber-400">Medio</strong> y <strong class="text-emerald-400">Alto</strong>.
+            </p>
+          </div>
+
+          <!-- Controles de la Etapa 1: Selector de Variable y Toggle Pre-GA -->
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Botón Comparativa Pre-GA vs Post-GA -->
+            <button id="btn-toggle-prega" onclick="toggleComparativaPreGA()" 
+                    class="px-3 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-amber-500/50 text-zinc-300 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm">
+              <i data-lucide="git-compare" class="w-3.5 h-3.5 text-amber-500"></i>
+              <span id="text-toggle-prega">Comparar con Pre-GA</span>
+            </button>
+
+            <!-- Selector de Variable -->
+            <div class="flex items-center gap-1.5">
+              <label for="select-variable" class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Var:</label>
+              <select id="select-variable" onchange="cambiarVariableInspeccionada(this.value)" 
+                      class="bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs font-bold text-amber-400 focus:outline-none focus:border-amber-500">
+                <!-- Opciones dinámicas -->
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Diagnóstico Lingüístico de la Variable Seleccionada -->
+        <div id="diagnostico-variable" class="mb-3 p-3 rounded-xl bg-zinc-925 border border-zinc-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-3">
+            <span class="text-zinc-400">Valor actual:</span>
+            <span id="fuzz-current-val" class="font-mono font-black text-white text-sm bg-zinc-900 px-2.5 py-1 rounded border border-zinc-700">--</span>
+            <span id="fuzz-interpretation-text" class="text-zinc-300 font-medium italic">Evaluando pertenencia...</span>
+          </div>
+
+          <!-- Grados de activación numéricos -->
+          <div class="flex items-center gap-2 font-mono text-[11px]">
+            <span class="px-2 py-0.5 rounded bg-sky-950/80 text-sky-300 border border-sky-800">
+              μ_Bajo: <strong id="val-mu-bajo" class="font-bold text-white">0.00</strong>
+            </span>
+            <span class="px-2 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-800">
+              μ_Medio: <strong id="val-mu-medio" class="font-bold text-white">0.00</strong>
+            </span>
+            <span class="px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-800">
+              μ_Alto: <strong id="val-mu-alto" class="font-bold text-white">0.00</strong>
+            </span>
+          </div>
+        </div>
+
+        <!-- Indicador de Arrastre Interactivo Directo en SVG -->
+        <div class="flex items-center justify-between mb-2 px-1 text-[11px] text-zinc-400">
+          <span class="flex items-center gap-1.5 text-amber-400/90 font-medium">
+            <i data-lucide="mouse-pointer-click" class="w-3.5 h-3.5 text-amber-500"></i>
+            Haz clic o arrastra horizontalmente en el gráfico para mover el valor en vivo
+          </span>
+          <span id="legend-prega-indicator" class="hidden text-amber-400 font-mono text-[10px] items-center gap-1.5 bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
+            <span class="w-3.5 border-b-2 border-dashed border-amber-400 inline-block"></span> Partición Original Pre-GA
+          </span>
+        </div>
+
+        <!-- CANVAS SVG DINÁMICO DE LAS FUNCIONES DE PERTENENCIA -->
+        <div class="w-full bg-zinc-950 rounded-xl border border-zinc-800 p-2 sm:p-4 overflow-x-auto relative">
+          <svg id="svg-fuzzificacion" viewBox="0 0 800 240" 
+               class="w-full h-auto min-w-[550px] select-none svg-interactive-canvas">
+            <!-- Grid de fondo y curvas generadas por JS -->
+          </svg>
+        </div>
+
+        <!-- Leyenda Explicativa de las Curvas -->
+        <div class="mt-3 flex flex-wrap items-center justify-between text-[11px] text-zinc-400 gap-2">
+          <div class="flex items-center gap-4">
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-sky-500/30 border border-sky-400"></span> Trapecio Bajo (min, a, b)</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-500/30 border border-amber-400"></span> Triángulo Medio (a, b, c)</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-500/30 border border-emerald-400"></span> Trapecio Alto (b, c, max)</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-zinc-300">
+            <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+            Línea roja discontinua = valor actual en el vino
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- ETAPA 2: MOTOR DE INFERENCIA, CUELLO DE BOTELLA & HEATMAP         -->
+      <!-- ================================================================= -->
+      <section class="card-editorial rounded-2xl p-5 lg:p-6 shadow-lg relative">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-zinc-800 gap-2">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center font-black text-xs font-mono">2</span>
+              <h2 class="text-base font-black text-zinc-100 tracking-tight">
+                Inferencia Mamdani: Reglas Difusas y Cuello de Botella (<span class="font-mono text-amber-400">MIN</span>)
+              </h2>
+            </div>
+            <p class="text-xs text-zinc-300 mt-1">
+              En la conjunción difusa (AND), el grado de activación de la regla <span class="font-mono text-amber-400">α_k = w_k · min(μ_i)</span> queda determinado estrictamente por la condición más débil.
+            </p>
+          </div>
+
+          <!-- Selector de Modo de Vista (Lista Jerárquica vs Matriz de 26 Reglas) -->
+          <div class="flex items-center gap-2">
+            <div class="flex bg-zinc-900 p-1 rounded-lg border border-zinc-800 text-xs">
+              <button id="btn-vista-lista" onclick="cambiarVistaReglas('lista')" 
+                      class="px-2.5 py-1 rounded bg-zinc-800 text-amber-400 font-bold flex items-center gap-1 transition-all">
+                <i data-lucide="list" class="w-3.5 h-3.5"></i> Lista Activas
+              </button>
+              <button id="btn-vista-matriz" onclick="cambiarVistaReglas('matriz')" 
+                      class="px-2.5 py-1 rounded text-zinc-400 hover:text-zinc-200 font-semibold flex items-center gap-1 transition-all">
+                <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> Matriz 26 Reglas (Heatmap)
+              </button>
+            </div>
+            <span class="px-2.5 py-1 rounded bg-zinc-900 border border-zinc-700 text-xs font-mono text-zinc-300 font-bold">
+              <span id="count-reglas-disparadas" class="text-amber-400">--</span> disparando
+            </span>
+          </div>
+        </div>
+
+        <!-- Vista 1: Contenedor de Reglas Activas con visualización del Cuello de Botella -->
+        <div id="contenedor-reglas-activas" class="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+          <div class="text-center py-8 text-zinc-500 text-xs">Evaluando activación de reglas...</div>
+        </div>
+
+        <!-- Vista 2: Matriz Heatmap de las 26 Reglas -->
+        <div id="contenedor-matriz-26" class="hidden space-y-4">
+          <div class="text-xs text-zinc-400 mb-2 flex items-center justify-between">
+            <span>Matriz completa de las 26 reglas integradas (PRISM + Apriori). Haz clic en una regla para ver su desglose:</span>
+            <div class="flex items-center gap-3 text-[10px]">
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-emerald-500/80"></span> Consecuente Alta</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-amber-500/80"></span> Consecuente Media</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-rose-500/80"></span> Consecuente Baja</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-zinc-700"></span> Podada por AG (w=0)</span>
+            </div>
+          </div>
+          
+          <div id="grid-matriz-26" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-9 gap-2">
+            <!-- Tiles generadas por JS -->
+          </div>
+
+          <!-- Tarjeta de inspección de regla seleccionada en la matriz -->
+          <div id="detalle-regla-matriz-inspector" class="p-3.5 rounded-xl bg-zinc-925 border border-amber-500/30 hidden">
+            <!-- Detalle dinámico -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- ETAPA 3: AGREGACIÓN DIFUSA Y DEFUZZIFICACIÓN POR CENTROIDE (CoG)   -->
+      <!-- ================================================================= -->
+      <section class="card-editorial rounded-2xl p-5 lg:p-6 shadow-lg relative">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-4 border-b border-zinc-800 gap-2">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center font-black text-xs font-mono">3</span>
+              <h2 class="text-base font-black text-zinc-100 tracking-tight">
+                Agregación Difusa (<span class="font-mono text-amber-400">MAX</span>) y Defuzzificación por Centroide (<span class="font-mono text-amber-400">CoG</span>)
+              </h2>
+            </div>
+            <p class="text-xs text-zinc-300 mt-1">
+              Truncamiento de Mamdani por cada clase, unión máxima en el universo [0, 10] y cálculo del centro de gravedad continuo.
+            </p>
+          </div>
+
+          <!-- Alphas por clase de calidad -->
+          <div class="flex items-center gap-2 text-xs font-mono">
+            <span class="px-2.5 py-1 rounded bg-rose-950/70 border border-rose-800 text-rose-300">
+              α_Baja: <strong id="alpha-salida-baja">0.00</strong>
+            </span>
+            <span class="px-2.5 py-1 rounded bg-amber-950/70 border border-amber-800 text-amber-300">
+              α_Media: <strong id="alpha-salida-media">0.00</strong>
+            </span>
+            <span class="px-2.5 py-1 rounded bg-emerald-950/70 border border-emerald-800 text-emerald-300">
+              α_Alta: <strong id="alpha-salida-alta">0.00</strong>
+            </span>
+          </div>
+        </div>
+
+        <!-- CANVAS SVG DE AGREGACIÓN DIFUSA Y CENTROIDE -->
+        <div class="w-full bg-zinc-950 rounded-xl border border-zinc-800 p-2 sm:p-4 overflow-x-auto">
+          <svg id="svg-defuzzificacion" viewBox="0 0 800 220" class="w-full h-auto min-w-[550px] select-none">
+            <!-- Polígono truncado y centroide generado dinámicamente por JS -->
+          </svg>
+        </div>
+
+        <!-- Explicación Matemática del Centroide -->
+        <div class="mt-4 p-4 rounded-xl bg-zinc-925 border border-zinc-800 grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+          <div>
+            <div class="text-xs font-bold uppercase tracking-wider text-amber-400 mb-1">
+              Fórmula de Defuzzificación (Center of Gravity)
+            </div>
+            <p class="text-xs text-zinc-300 leading-relaxed">
+              El valor cuantitativo final se obtiene integrando numéricamente el área del polígono agregado sobre los 101 puntos de discretización del universo de calidad:
+            </p>
+            <div class="mt-2 font-mono text-xs text-amber-300 bg-zinc-900 p-2 rounded border border-zinc-800">
+              x* = Σ [ u_i · μ_Agregado(u_i) ] / Σ [ μ_Agregado(u_i) ]
+            </div>
+          </div>
+
+          <div class="bg-zinc-900 p-3 rounded-lg border border-zinc-800">
+            <div class="text-xs font-bold text-zinc-300 mb-2">Umbrales de Decisión Lingüística:</div>
+            <div class="space-y-1 text-xs">
+              <div class="flex items-center justify-between text-rose-300">
+                <span>Zona Baja (&lt; 5.30):</span>
+                <span class="font-mono font-bold">Defectos / Acidez Volátil Alta</span>
+              </div>
+              <div class="flex items-center justify-between text-amber-300">
+                <span>Zona Media [5.30 — 6.60):</span>
+                <span class="font-mono font-bold">Vino Estándar Equilibrado</span>
+              </div>
+              <div class="flex items-center justify-between text-emerald-300">
+                <span>Zona Alta (≥ 6.60):</span>
+                <span class="font-mono font-bold">Excelente Alcohol y Sulfatos</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- SCRIPT JS REACTIVO: COMUNICACIÓN CON API Y RENDERIZADO SVG EN VIVO   -->
+  <!-- ===================================================================== -->
+  <script>
+    // ESTADO GLOBAL DE LA APLICACIÓN
+    let datosFuzzy = null;
+    let variableSeleccionada = "alcohol";
+    let debounceTimer = null;
+    let drawerAbierto = true;
+    let mostrarPreGA = false;
+    let vistaReglas = "lista";
+    let reglaSeleccionadaEnMatriz = null;
+    let isDraggingVariable = false;
+
+    // Etiquetas y Unidades Humanas para las 11 variables (soporta formato con espacios y con guión bajo)
+    const METADATOS_VARIABLES = {
+      "fixed acidity": { label: "Acidez Fija", unit: "g/dm³" },
+      "volatile acidity": { label: "Acidez Volátil", unit: "g/dm³" },
+      "citric acid": { label: "Ácido Cítrico", unit: "g/dm³" },
+      "residual sugar": { label: "Azúcar Residual", unit: "g/dm³" },
+      "chlorides": { label: "Cloruros", unit: "g/dm³" },
+      "free sulfur dioxide": { label: "SO₂ Libre", unit: "mg/dm³" },
+      "total sulfur dioxide": { label: "SO₂ Total", unit: "mg/dm³" },
+      "density": { label: "Densidad", unit: "g/cm³" },
+      "pH": { label: "pH", unit: "" },
+      "sulphates": { label: "Sulfatos", unit: "g/dm³" },
+      "alcohol": { label: "Alcohol", unit: "% vol" },
+      // Alias con guión bajo
+      "fixed_acidity": { label: "Acidez Fija", unit: "g/dm³" },
+      "volatile_acidity": { label: "Acidez Volátil", unit: "g/dm³" },
+      "citric_acid": { label: "Ácido Cítrico", unit: "g/dm³" },
+      "residual_sugar": { label: "Azúcar Residual", unit: "g/dm³" },
+      "free_sulfur_dioxide": { label: "SO₂ Libre", unit: "mg/dm³" },
+      "total_sulfur_dioxide": { label: "SO₂ Total", unit: "mg/dm³" }
+    };
+
+    function sanitizarId(str) {
+      return str.replace(/\s+/g, '_');
+    }
+
+    // 1. CARGA INICIAL
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      configurarArrastreSVG();
+      solicitarDatosFuzzy({});
+    });
+
+    // 2. TOGGLE DEL CAJÓN RETRÁCTIL
+    function toggleDrawer() {
+      drawerAbierto = !drawerAbierto;
+      const drawer = document.getElementById("sidebar-drawer");
+      const textBtn = document.getElementById("text-toggle-drawer");
+      const iconBtn = document.getElementById("icon-toggle-drawer");
+
+      if (drawerAbierto) {
+        drawer.classList.remove("-ml-80", "lg:-ml-96");
+        textBtn.innerText = "Ocultar Parámetros";
+        iconBtn.setAttribute("data-lucide", "sliders");
+      } else {
+        drawer.classList.add("-ml-80", "lg:-ml-96");
+        textBtn.innerText = "Mostrar Parámetros";
+        iconBtn.setAttribute("data-lucide", "panel-left-open");
+      }
+      lucide.createIcons();
+    }
+
+    // 3. COMUNICACIÓN CON LA API BACKEND (POST /api/fuzzy-explorer-data)
+    function solicitarDatosFuzzy(muestraValores) {
+      fetch("/api/fuzzy-explorer-data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(muestraValores || {})
+      })
+      .then(res => res.json())
+      .then(data => {
+        datosFuzzy = data;
+        renderizarSliders(data.variables, data.muestra_actual);
+        actualizarSelectVariables(data.variables);
+        actualizarBadgeResultado(data.defuzzificacion, data.total_reglas_activas);
+        renderizarFuzzificacionSVG();
+        renderizarReglasActivas();
+        renderizarMatrizHeatmap();
+        renderizarDefuzzificacionSVG();
+        lucide.createIcons();
+      })
+      .catch(err => console.error("Error al obtener datos difusos:", err));
+    }
+
+    // Debounce para eventos de sliders
+    function onSliderChange() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        const muestra = {};
+        document.querySelectorAll(".slider-quimico").forEach(input => {
+          const vName = input.dataset.var;
+          const valNum = parseFloat(input.value);
+          muestra[vName] = valNum;
+          const counter = document.getElementById(`val-counter-${sanitizarId(vName)}`);
+          if (counter) counter.innerText = valNum.toFixed(2);
+        });
+        solicitarDatosFuzzy(muestra);
+      }, 50);
+    }
+
+    // 4. RENDERIZADO DE SLIDERS
+    function renderizarSliders(variables, muestraActual) {
+      const container = document.getElementById("sliders-container");
+      // Evitar recrear todo el DOM si ya existen para preservar foco y suavidad
+      if (container.children.length === Object.keys(variables).length) {
+        for (const [v, val] of Object.entries(muestraActual)) {
+          const sId = sanitizarId(v);
+          const inp = document.getElementById(`slider-${sId}`);
+          const cnt = document.getElementById(`val-counter-${sId}`);
+          if (inp && inp !== document.activeElement) inp.value = val;
+          if (cnt) cnt.innerText = val.toFixed(2);
+        }
+        return;
+      }
+
+      let html = "";
+      for (const [varName, info] of Object.entries(variables)) {
+        const meta = METADATOS_VARIABLES[varName] || { label: varName, unit: "" };
+        const sId = sanitizarId(varName);
+        const step = (info.max - info.min) / 150;
+        const currentVal = muestraActual[varName] !== undefined ? muestraActual[varName] : info.valor_actual;
+
+        html += `
+          <div class="p-2.5 rounded-xl bg-zinc-925 border border-zinc-800 hover:border-zinc-700 transition-colors">
+            <div class="flex items-center justify-between text-xs mb-1.5">
+              <span class="font-bold text-zinc-200 cursor-pointer hover:text-amber-400" onclick="cambiarVariableInspeccionada('${varName}')">
+                ${meta.label}
+              </span>
+              <span class="font-mono font-bold text-amber-400 bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800 text-[11px]">
+                <span id="val-counter-${sId}">${currentVal.toFixed(2)}</span> ${meta.unit}
+              </span>
+            </div>
+            <input type="range" 
+                   id="slider-${sId}"
+                   class="slider-quimico w-full h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer"
+                   data-var="${varName}"
+                   min="${info.min}" 
+                   max="${info.max}" 
+                   step="${step.toFixed(4)}"
+                   value="${currentVal}"
+                   oninput="onSliderChange()">
+            <div class="flex justify-between text-[10px] text-zinc-500 font-mono mt-1">
+              <span>${info.min.toFixed(1)}</span>
+              <span>${info.max.toFixed(1)}</span>
+            </div>
+          </div>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    // 5. ACTUALIZAR SELECT DE VARIABLES
+    function actualizarSelectVariables(variables) {
+      const select = document.getElementById("select-variable");
+      if (select.children.length === 0) {
+        let html = "";
+        for (const [varName, info] of Object.entries(variables)) {
+          const meta = METADATOS_VARIABLES[varName] || { label: varName };
+          const selected = varName === variableSeleccionada ? "selected" : "";
+          html += `<option value="${varName}" ${selected}>${meta.label} (${varName})</option>`;
+        }
+        select.innerHTML = html;
+      }
+    }
+
+    function cambiarVariableInspeccionada(varName) {
+      variableSeleccionada = varName;
+      const select = document.getElementById("select-variable");
+      if (select) select.value = varName;
+      renderizarFuzzificacionSVG();
+    }
+
+    // 6. ACTUALIZAR BADGE DE RESULTADO (SEGUNDO PLANO)
+    function actualizarBadgeResultado(defuzz, totalReglas) {
+      document.getElementById("badge-centroide-val").innerText = defuzz.centroide.toFixed(2);
+      document.getElementById("badge-reglas-count").innerText = `${totalReglas} / 26`;
+
+      const badgeContainer = document.getElementById("badge-calidad-container");
+      const badgeText = document.getElementById("badge-calidad-text");
+      const badgeDot = document.getElementById("badge-calidad-dot");
+
+      badgeText.innerText = `Calidad ${defuzz.clase_predicha.toUpperCase()}`;
+      
+      if (defuzz.clase_predicha === "Alta") {
+        badgeContainer.className = "flex items-center gap-2 px-3 py-1 rounded-lg bg-emerald-950/80 border border-emerald-600/80 text-emerald-300";
+        badgeDot.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse";
+      } else if (defuzz.clase_predicha === "Media") {
+        badgeContainer.className = "flex items-center gap-2 px-3 py-1 rounded-lg bg-amber-950/80 border border-amber-600/80 text-amber-300";
+        badgeDot.className = "w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse";
+      } else {
+        badgeContainer.className = "flex items-center gap-2 px-3 py-1 rounded-lg bg-rose-950/80 border border-rose-600/80 text-rose-300";
+        badgeDot.className = "w-2.5 h-2.5 rounded-full bg-rose-400 animate-pulse";
+      }
+    }
+
+    // 7. MEJORA 1: ARRASTRE DIRECTO EN EL CANVAS SVG DE FUZZIFICACIÓN
+    function configurarArrastreSVG() {
+      const svg = document.getElementById("svg-fuzzificacion");
+
+      function actualizarValorPorClick(e) {
+        if (!datosFuzzy || !datosFuzzy.variables[variableSeleccionada]) return;
+        const varInfo = datosFuzzy.variables[variableSeleccionada];
+        const minX = varInfo.min;
+        const maxX = varInfo.max;
+
+        const rect = svg.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const mouseX = clientX - rect.left;
+
+        const padLeftPx = 60 * (rect.width / 800);
+        const plotWPx = (800 - 60 - 30) * (rect.width / 800);
+
+        let ratio = (mouseX - padLeftPx) / plotWPx;
+        ratio = Math.max(0, Math.min(1, ratio));
+
+        const nuevoVal = minX + ratio * (maxX - minX);
+
+        // Actualizar slider en drawer
+        const sId = sanitizarId(variableSeleccionada);
+        const inp = document.getElementById(`slider-${sId}`);
+        const cnt = document.getElementById(`val-counter-${sId}`);
+        if (inp) inp.value = nuevoVal;
+        if (cnt) cnt.innerText = nuevoVal.toFixed(2);
+
+        // Enviar actualización inmediata a la API
+        const muestra = { ...datosFuzzy.muestra_actual, [variableSeleccionada]: nuevoVal };
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          solicitarDatosFuzzy(muestra);
+        }, 35);
+      }
+
+      svg.addEventListener("mousedown", (e) => {
+        isDraggingVariable = true;
+        actualizarValorPorClick(e);
+      });
+
+      window.addEventListener("mousemove", (e) => {
+        if (isDraggingVariable) {
+          actualizarValorPorClick(e);
+        }
+      });
+
+      window.addEventListener("mouseup", () => {
+        isDraggingVariable = false;
+      });
+
+      // Soporte Touch para móviles y tablets
+      svg.addEventListener("touchstart", (e) => {
+        isDraggingVariable = true;
+        actualizarValorPorClick(e);
+      }, { passive: true });
+
+      window.addEventListener("touchmove", (e) => {
+        if (isDraggingVariable) {
+          actualizarValorPorClick(e);
+        }
+      }, { passive: true });
+
+      window.addEventListener("touchend", () => {
+        isDraggingVariable = false;
+      });
+    }
+
+    // 8. MEJORA 2: CONMUTADOR PRE-GA VS POST-GA
+    function toggleComparativaPreGA() {
+      mostrarPreGA = !mostrarPreGA;
+      const btn = document.getElementById("btn-toggle-prega");
+      const txt = document.getElementById("text-toggle-prega");
+      const legend = document.getElementById("legend-prega-indicator");
+
+      if (mostrarPreGA) {
+        btn.classList.add("bg-amber-500/20", "border-amber-500", "text-amber-300");
+        txt.innerText = "Ocultar Pre-GA";
+        if (legend) legend.classList.remove("hidden");
+      } else {
+        btn.classList.remove("bg-amber-500/20", "border-amber-500", "text-amber-300");
+        txt.innerText = "Comparar con Pre-GA";
+        if (legend) legend.classList.add("hidden");
+      }
+      renderizarFuzzificacionSVG();
+      lucide.createIcons();
+    }
+
+    // 9. RENDERIZAR FASE 1: FUZZIFICACIÓN DINÁMICA (SVG)
+    function renderizarFuzzificacionSVG() {
+      if (!datosFuzzy || !datosFuzzy.variables[variableSeleccionada]) return;
+
+      const varInfo = datosFuzzy.variables[variableSeleccionada];
+      const cortes = varInfo.puntos_corte;
+      const cortesIni = varInfo.puntos_corte_iniciales || cortes;
+      const pertenencias = varInfo.pertenencias;
+      const xVal = varInfo.valor_actual;
+      const minX = varInfo.min;
+      const maxX = varInfo.max;
+
+      // Actualizar diagnósticos textuales
+      const meta = METADATOS_VARIABLES[variableSeleccionada] || { label: variableSeleccionada, unit: "" };
+      document.getElementById("fuzz-current-val").innerText = `${xVal.toFixed(2)} ${meta.unit}`;
+      document.getElementById("val-mu-bajo").innerText = pertenencias.Bajo.toFixed(3);
+      document.getElementById("val-mu-medio").innerText = pertenencias.Medio.toFixed(3);
+      document.getElementById("val-mu-alto").innerText = pertenencias.Alto.toFixed(3);
+
+      let txtInterp = `En ${meta.label}, el valor se evalúa con: `;
+      const partes = [];
+      if (pertenencias.Bajo > 0.01) partes.push(`<strong class="text-sky-400">${(pertenencias.Bajo * 100).toFixed(0)}% Bajo</strong>`);
+      if (pertenencias.Medio > 0.01) partes.push(`<strong class="text-amber-400">${(pertenencias.Medio * 100).toFixed(0)}% Medio</strong>`);
+      if (pertenencias.Alto > 0.01) partes.push(`<strong class="text-emerald-400">${(pertenencias.Alto * 100).toFixed(0)}% Alto</strong>`);
+      if (partes.length === 0) partes.push(`neutro (0% en todas)`);
+      document.getElementById("fuzz-interpretation-text").innerHTML = txtInterp + partes.join(" y ");
+
+      // Dimensiones del SVG
+      const width = 800;
+      const height = 240;
+      const padLeft = 60;
+      const padRight = 30;
+      const padTop = 30;
+      const padBottom = 40;
+
+      const plotW = width - padLeft - padRight;
+      const plotH = height - padTop - padBottom;
+
+      const scaleX = (val) => padLeft + ((val - minX) / (maxX - minX)) * plotW;
+      const scaleY = (mu) => padTop + plotH - (mu * plotH);
+
+      const a = cortes.a;
+      const b = cortes.b;
+      const c = cortes.c;
+
+      // Coordenadas Post-GA (Sólidas)
+      const pathBajo = `M ${scaleX(minX)},${scaleY(1)} L ${scaleX(a)},${scaleY(1)} L ${scaleX(b)},${scaleY(0)} L ${scaleX(minX)},${scaleY(0)} Z`;
+      const lineBajo = `M ${scaleX(minX)},${scaleY(1)} L ${scaleX(a)},${scaleY(1)} L ${scaleX(b)},${scaleY(0)}`;
+
+      const pathMedio = `M ${scaleX(a)},${scaleY(0)} L ${scaleX(b)},${scaleY(1)} L ${scaleX(c)},${scaleY(0)} Z`;
+      const lineMedio = `M ${scaleX(a)},${scaleY(0)} L ${scaleX(b)},${scaleY(1)} L ${scaleX(c)},${scaleY(0)}`;
+
+      const pathAlto = `M ${scaleX(b)},${scaleY(0)} L ${scaleX(c)},${scaleY(1)} L ${scaleX(maxX)},${scaleY(1)} L ${scaleX(maxX)},${scaleY(0)} Z`;
+      const lineAlto = `M ${scaleX(b)},${scaleY(0)} L ${scaleX(c)},${scaleY(1)} L ${scaleX(maxX)},${scaleY(1)}`;
+
+      // Coordenadas Pre-GA (Discontinuas)
+      const aIni = cortesIni.a;
+      const bIni = cortesIni.b;
+      const cIni = cortesIni.c;
+      const lineBajoPre = `M ${scaleX(minX)},${scaleY(1)} L ${scaleX(aIni)},${scaleY(1)} L ${scaleX(bIni)},${scaleY(0)}`;
+      const lineMedioPre = `M ${scaleX(aIni)},${scaleY(0)} L ${scaleX(bIni)},${scaleY(1)} L ${scaleX(cIni)},${scaleY(0)}`;
+      const lineAltoPre = `M ${scaleX(bIni)},${scaleY(0)} L ${scaleX(cIni)},${scaleY(1)} L ${scaleX(maxX)},${scaleY(1)}`;
+
+      const curX = scaleX(xVal);
+
+      const svg = document.getElementById("svg-fuzzificacion");
+      svg.innerHTML = `
+        <defs>
+          <linearGradient id="grad-bajo" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.25" />
+            <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.02" />
+          </linearGradient>
+          <linearGradient id="grad-medio" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.25" />
+            <stop offset="100%" stop-color="#fbbf24" stop-opacity="0.02" />
+          </linearGradient>
+          <linearGradient id="grad-alto" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#34d399" stop-opacity="0.25" />
+            <stop offset="100%" stop-color="#34d399" stop-opacity="0.02" />
+          </linearGradient>
+        </defs>
+
+        <!-- Ejes y Líneas de Fondo -->
+        <line x1="${padLeft}" y1="${padTop}" x2="${padLeft}" y2="${height - padBottom}" stroke="#3f3f46" stroke-width="1.5" />
+        <line x1="${padLeft}" y1="${height - padBottom}" x2="${width - padRight}" y2="${height - padBottom}" stroke="#3f3f46" stroke-width="1.5" />
+        
+        <line x1="${padLeft}" y1="${scaleY(0.5)}" x2="${width - padRight}" y2="${scaleY(0.5)}" stroke="#27272a" stroke-dasharray="4 4" />
+        <text x="${padLeft - 10}" y="${scaleY(0.5) + 4}" fill="#71717a" font-size="10" text-anchor="end" font-family="monospace">0.5</text>
+        <line x1="${padLeft}" y1="${scaleY(1.0)}" x2="${width - padRight}" y2="${scaleY(1.0)}" stroke="#27272a" stroke-dasharray="4 4" />
+        <text x="${padLeft - 10}" y="${scaleY(1.0) + 4}" fill="#71717a" font-size="10" text-anchor="end" font-family="monospace">1.0</text>
+        <text x="${padLeft - 10}" y="${scaleY(0.0) + 4}" fill="#71717a" font-size="10" text-anchor="end" font-family="monospace">0.0</text>
+
+        <!-- Puntos de corte en el eje X -->
+        <text x="${scaleX(minX)}" y="${height - padBottom + 16}" fill="#a1a1aa" font-size="10" text-anchor="start" font-family="monospace">${minX.toFixed(1)}</text>
+        <text x="${scaleX(a)}" y="${height - padBottom + 16}" fill="#38bdf8" font-size="10" text-anchor="middle" font-family="monospace">a: ${a.toFixed(2)}</text>
+        <text x="${scaleX(b)}" y="${height - padBottom + 16}" fill="#fbbf24" font-size="10" text-anchor="middle" font-family="monospace">b: ${b.toFixed(2)}</text>
+        <text x="${scaleX(c)}" y="${height - padBottom + 16}" fill="#34d399" font-size="10" text-anchor="middle" font-family="monospace">c: ${c.toFixed(2)}</text>
+        <text x="${scaleX(maxX)}" y="${height - padBottom + 16}" fill="#a1a1aa" font-size="10" text-anchor="end" font-family="monospace">${maxX.toFixed(1)}</text>
+
+        <!-- SUPERPOSICIÓN PRE-GA (Líneas Discontinuas en Gris/Oro suave) -->
+        ${mostrarPreGA ? `
+          <g opacity="0.6">
+            <path d="${lineBajoPre}" fill="none" stroke="#71717a" stroke-width="2" stroke-dasharray="4 4" />
+            <path d="${lineMedioPre}" fill="none" stroke="#d97706" stroke-width="2" stroke-dasharray="4 4" />
+            <path d="${lineAltoPre}" fill="none" stroke="#71717a" stroke-width="2" stroke-dasharray="4 4" />
+            <!-- Marcadores Pre-GA en el eje -->
+            <text x="${scaleX(aIni)}" y="${height - padBottom + 28}" fill="#71717a" font-size="9" text-anchor="middle" font-family="monospace">ini a: ${aIni.toFixed(2)}</text>
+            <text x="${scaleX(bIni)}" y="${height - padBottom + 28}" fill="#d97706" font-size="9" text-anchor="middle" font-family="monospace">ini b: ${bIni.toFixed(2)}</text>
+            <text x="${scaleX(cIni)}" y="${height - padBottom + 28}" fill="#71717a" font-size="9" text-anchor="middle" font-family="monospace">ini c: ${cIni.toFixed(2)}</text>
+          </g>
+        ` : ''}
+
+        <!-- Áreas de Pertenencia Optimizadas (Post-GA) -->
+        <path d="${pathBajo}" fill="url(#grad-bajo)" />
+        <path d="${lineBajo}" fill="none" stroke="#38bdf8" stroke-width="2.5" />
+
+        <path d="${pathMedio}" fill="url(#grad-medio)" />
+        <path d="${lineMedio}" fill="none" stroke="#fbbf24" stroke-width="2.5" />
+
+        <path d="${pathAlto}" fill="url(#grad-alto)" />
+        <path d="${lineAlto}" fill="none" stroke="#34d399" stroke-width="2.5" />
+
+        <!-- Etiquetas de Funciones -->
+        <text x="${scaleX((minX + a) / 2)}" y="${padTop + 20}" fill="#38bdf8" font-size="11" font-weight="bold" text-anchor="middle">BAJO</text>
+        <text x="${scaleX(b)}" y="${padTop + 20}" fill="#fbbf24" font-size="11" font-weight="bold" text-anchor="middle">MEDIO</text>
+        <text x="${scaleX((c + maxX) / 2)}" y="${padTop + 20}" fill="#34d399" font-size="11" font-weight="bold" text-anchor="middle">ALTO</text>
+
+        <!-- Cursor Interactivo del Valor Actual -->
+        <line x1="${curX}" y1="${padTop - 10}" x2="${curX}" y2="${height - padBottom}" stroke="#f43f5e" stroke-width="2" stroke-dasharray="5 3" />
+        <polygon points="${curX - 6},${padTop - 12} ${curX + 6},${padTop - 12} ${curX},${padTop - 4}" fill="#f43f5e" />
+        <text x="${curX}" y="${padTop - 16}" fill="#f43f5e" font-size="11" font-weight="bold" text-anchor="middle" font-family="monospace">
+          x = ${xVal.toFixed(2)}
+        </text>
+
+        <!-- Puntos de Intersección μ -->
+        ${pertenencias.Bajo > 0.001 ? `
+          <circle cx="${curX}" cy="${scaleY(pertenencias.Bajo)}" r="5" fill="#38bdf8" stroke="#ffffff" stroke-width="2" class="pulsing-intersection" />
+          <text x="${curX + 8}" y="${scaleY(pertenencias.Bajo) - 4}" fill="#38bdf8" font-size="10" font-weight="bold" font-family="monospace">μ=${pertenencias.Bajo.toFixed(2)}</text>
+        ` : ''}
+
+        ${pertenencias.Medio > 0.001 ? `
+          <circle cx="${curX}" cy="${scaleY(pertenencias.Medio)}" r="5" fill="#fbbf24" stroke="#ffffff" stroke-width="2" class="pulsing-intersection" />
+          <text x="${curX + 8}" y="${scaleY(pertenencias.Medio) - 4}" fill="#fbbf24" font-size="10" font-weight="bold" font-family="monospace">μ=${pertenencias.Medio.toFixed(2)}</text>
+        ` : ''}
+
+        ${pertenencias.Alto > 0.001 ? `
+          <circle cx="${curX}" cy="${scaleY(pertenencias.Alto)}" r="5" fill="#34d399" stroke="#ffffff" stroke-width="2" class="pulsing-intersection" />
+          <text x="${curX + 8}" y="${scaleY(pertenencias.Alto) - 4}" fill="#34d399" font-size="10" font-weight="bold" font-family="monospace">μ=${pertenencias.Alto.toFixed(2)}</text>
+        ` : ''}
+      `;
+    }
+
+    // 10. MEJORA 3: CONMUTADOR DE VISTAS (LISTA VS MATRIZ HEATMAP 26 REGLAS)
+    function cambiarVistaReglas(vista) {
+      vistaReglas = vista;
+      const btnLista = document.getElementById("btn-vista-lista");
+      const btnMatriz = document.getElementById("btn-vista-matriz");
+      const cLista = document.getElementById("contenedor-reglas-activas");
+      const cMatriz = document.getElementById("contenedor-matriz-26");
+
+      if (vista === "lista") {
+        btnLista.className = "px-2.5 py-1 rounded bg-zinc-800 text-amber-400 font-bold flex items-center gap-1 transition-all";
+        btnMatriz.className = "px-2.5 py-1 rounded text-zinc-400 hover:text-zinc-200 font-semibold flex items-center gap-1 transition-all";
+        cLista.classList.remove("hidden");
+        cMatriz.classList.add("hidden");
+      } else {
+        btnMatriz.className = "px-2.5 py-1 rounded bg-zinc-800 text-amber-400 font-bold flex items-center gap-1 transition-all";
+        btnLista.className = "px-2.5 py-1 rounded text-zinc-400 hover:text-zinc-200 font-semibold flex items-center gap-1 transition-all";
+        cMatriz.classList.remove("hidden");
+        cLista.classList.add("hidden");
+        renderizarMatrizHeatmap();
+      }
+      lucide.createIcons();
+    }
+
+    // RENDERIZAR LISTA DE REGLAS ACTIVAS CON CUELLO DE BOTELLA
+    function renderizarReglasActivas() {
+      if (!datosFuzzy) return;
+      const reglas = datosFuzzy.reglas;
+      const activas = reglas.filter(r => r.alpha > 0.005);
+      
+      document.getElementById("count-reglas-disparadas").innerText = activas.length;
+
+      const container = document.getElementById("contenedor-reglas-activas");
+      if (activas.length === 0) {
+        container.innerHTML = `
+          <div class="p-6 text-center rounded-xl bg-zinc-925 border border-zinc-800 text-zinc-400 text-xs">
+            <i data-lucide="info" class="w-5 h-5 mx-auto mb-2 text-amber-500"></i>
+            Ninguna regla difusa supera el umbral de disparo con los valores actuales. 
+            El sistema recurre a la defuzzificación de respaldo neutral (Calidad Media).
+          </div>
+        `;
+        return;
+      }
+
+      let html = "";
+      activas.forEach((r) => {
+        let badgeColor = "bg-amber-950/80 border-amber-600 text-amber-300";
+        if (r.consecuente === "Alta") badgeColor = "bg-emerald-950/80 border-emerald-600 text-emerald-300";
+        if (r.consecuente === "Baja") badgeColor = "bg-rose-950/80 border-rose-600 text-rose-300";
+
+        let antecedentesHtml = "";
+        r.antecedentes.forEach(ant => {
+          const meta = METADATOS_VARIABLES[ant.variable] || { label: ant.variable };
+          if (ant.es_cuello_botella) {
+            antecedentesHtml += `
+              <div class="bottleneck-highlight px-2.5 py-1.5 rounded-lg text-xs flex items-center gap-1.5">
+                <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-400"></i>
+                <span class="font-bold text-zinc-100">${meta.label}</span> es
+                <span class="font-bold text-amber-300 uppercase">${ant.etiqueta}</span>
+                <span class="font-mono font-black text-amber-300 bg-amber-950 px-1.5 py-0.5 rounded border border-amber-600 text-[10px]">
+                  μ=${ant.mu.toFixed(2)} [CUELLO DE BOTELLA]
+                </span>
+              </div>
+            `;
+          } else {
+            antecedentesHtml += `
+              <div class="bg-zinc-900 border border-zinc-800 px-2.5 py-1.5 rounded-lg text-xs flex items-center gap-1.5 text-zinc-300">
+                <span class="font-medium text-zinc-200">${meta.label}</span> es
+                <span class="font-bold text-zinc-100 uppercase">${ant.etiqueta}</span>
+                <span class="font-mono text-zinc-400 text-[10px]">(μ=${ant.mu.toFixed(2)})</span>
+              </div>
+            `;
+          }
+        });
+
+        html += `
+          <div class="p-3.5 rounded-xl bg-zinc-925 border border-zinc-800/80 hover:border-zinc-700 transition-all">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-2 mb-2 border-b border-zinc-850">
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-bold text-xs text-amber-400 bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">
+                  ${r.id_regla}
+                </span>
+                <span class="text-[10px] uppercase font-bold text-zinc-500 bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-800">
+                  ${r.origen}
+                </span>
+                <span class="text-xs text-zinc-400">→</span>
+                <span class="px-2 py-0.5 rounded border text-xs font-black uppercase ${badgeColor}">
+                  Calidad ${r.consecuente}
+                </span>
+              </div>
+
+              <!-- Nivel de Disparo Alpha y Peso Genético -->
+              <div class="flex items-center gap-3 font-mono text-xs">
+                <span class="text-zinc-400">Peso GA: <strong class="text-zinc-200">${r.peso.toFixed(2)}</strong></span>
+                <div class="flex items-center gap-1 bg-zinc-900 px-2.5 py-1 rounded border border-zinc-800">
+                  <span class="text-zinc-400">α_k =</span>
+                  <span class="font-extrabold text-amber-400 text-sm">${r.alpha.toFixed(3)}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Conjunción de antecedentes -->
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">SI:</span>
+              ${antecedentesHtml}
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    // RENDERIZAR MATRIZ HEATMAP (26 REGLAS)
+    function renderizarMatrizHeatmap() {
+      if (!datosFuzzy || !datosFuzzy.matriz_26_reglas) return;
+      const matriz = datosFuzzy.matriz_26_reglas;
+      const container = document.getElementById("grid-matriz-26");
+
+      let html = "";
+      matriz.forEach(r => {
+        let estatusBg = "bg-zinc-900/60 border-zinc-800 text-zinc-500";
+        let glowStyle = "";
+        let textoAlpha = "0.00";
+
+        if (r.podada) {
+          estatusBg = "bg-zinc-950/80 border-dashed border-zinc-800 text-zinc-600 opacity-50";
+        } else if (r.alpha > 0.005) {
+          textoAlpha = r.alpha.toFixed(2);
+          if (r.consecuente === "Alta") {
+            estatusBg = "bg-emerald-950/70 border-emerald-600/80 text-emerald-300";
+            glowStyle = `box-shadow: 0 0 10px rgba(16, 185, 129, ${Math.min(0.8, r.alpha + 0.2)});`;
+          } else if (r.consecuente === "Media") {
+            estatusBg = "bg-amber-950/70 border-amber-600/80 text-amber-300";
+            glowStyle = `box-shadow: 0 0 10px rgba(245, 158, 11, ${Math.min(0.8, r.alpha + 0.2)});`;
+          } else {
+            estatusBg = "bg-rose-950/70 border-rose-600/80 text-rose-300";
+            glowStyle = `box-shadow: 0 0 10px rgba(244, 63, 94, ${Math.min(0.8, r.alpha + 0.2)});`;
+          }
+        }
+
+        const isSelected = reglaSeleccionadaEnMatriz && reglaSeleccionadaEnMatriz.id_regla === r.id_regla;
+        const selectedBorder = isSelected ? "ring-2 ring-amber-400" : "";
+
+        html += `
+          <div onclick="inspeccionarReglaEnMatriz('${r.id_regla}')" 
+               style="${glowStyle}"
+               class="p-2 rounded-xl border text-center cursor-pointer transition-all hover:scale-105 ${estatusBg} ${selectedBorder}">
+            <div class="font-mono font-bold text-xs flex items-center justify-between mb-1">
+              <span>${r.id_regla}</span>
+              ${r.podada ? '<i data-lucide="lock" class="w-3 h-3 text-zinc-600"></i>' : ''}
+            </div>
+            <div class="text-[10px] font-bold uppercase truncate">
+              ${r.podada ? 'Podada' : r.consecuente}
+            </div>
+            <div class="font-mono text-[11px] font-extrabold mt-1">
+              α=${r.podada ? '0.00' : textoAlpha}
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+      lucide.createIcons();
+    }
+
+    function inspeccionarReglaEnMatriz(idRegla) {
+      if (!datosFuzzy || !datosFuzzy.matriz_26_reglas) return;
+      const regla = datosFuzzy.matriz_26_reglas.find(r => r.id_regla === idRegla);
+      if (!regla) return;
+
+      reglaSeleccionadaEnMatriz = regla;
+      renderizarMatrizHeatmap();
+
+      const inspector = document.getElementById("detalle-regla-matriz-inspector");
+      inspector.classList.remove("hidden");
+
+      let antecedentesHtml = "";
+      regla.antecedentes.forEach(ant => {
+        const meta = METADATOS_VARIABLES[ant.variable] || { label: ant.variable };
+        if (ant.es_cuello_botella) {
+          antecedentesHtml += `
+            <span class="bottleneck-highlight px-2 py-1 rounded text-xs inline-flex items-center gap-1 font-bold text-amber-300">
+              <i data-lucide="alert-triangle" class="w-3 h-3"></i>
+              ${meta.label} = ${ant.etiqueta} (μ=${ant.mu.toFixed(2)}) [CUELLO DE BOTELLA]
+            </span>
+          `;
+        } else {
+          antecedentesHtml += `
+            <span class="bg-zinc-900 border border-zinc-800 px-2 py-1 rounded text-xs inline-flex items-center gap-1 text-zinc-300">
+              ${meta.label} = ${ant.etiqueta} (μ=${ant.mu.toFixed(2)})
+            </span>
+          `;
+        }
+      });
+
+      inspector.innerHTML = `
+        <div class="flex items-center justify-between pb-2 mb-2 border-b border-zinc-800">
+          <div class="flex items-center gap-2">
+            <span class="font-mono font-bold text-amber-400 bg-zinc-900 px-2 py-0.5 rounded border border-zinc-800">${regla.id_regla}</span>
+            <span class="text-xs text-zinc-400 font-medium">Origen: ${regla.origen}</span>
+            <span class="text-xs font-bold ${regla.consecuente === 'Alta' ? 'text-emerald-400' : (regla.consecuente === 'Media' ? 'text-amber-400' : 'text-rose-400')}">
+              → Calidad ${regla.consecuente}
+            </span>
+          </div>
+          <div class="text-xs font-mono text-zinc-400 flex items-center gap-3">
+            <span>Peso GA: <strong class="text-white">${regla.peso.toFixed(2)}</strong></span>
+            <span>Disparo α_k: <strong class="text-amber-400">${regla.alpha.toFixed(3)}</strong></span>
+          </div>
+        </div>
+        <div class="text-xs text-zinc-300">
+          <strong class="text-zinc-500 uppercase tracking-wider text-[10px]">CONDICIONES:</strong>
+          <div class="flex flex-wrap gap-1.5 mt-1.5">${antecedentesHtml}</div>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    // 11. RENDERIZAR FASE 3: AGREGACIÓN DIFUSA Y CENTROIDE CoG (SVG)
+    function renderizarDefuzzificacionSVG() {
+      if (!datosFuzzy || !datosFuzzy.defuzzificacion) return;
+      const defuzz = datosFuzzy.defuzzificacion;
+      const u = defuzz.universo;
+      const muAgregado = defuzz.mu_agregado;
+      const centroide = defuzz.centroide;
+      const alphas = defuzz.alphas_clase;
+
+      // Actualizar badges numéricos
+      document.getElementById("alpha-salida-baja").innerText = (alphas.Baja || 0).toFixed(3);
+      document.getElementById("alpha-salida-media").innerText = (alphas.Media || 0).toFixed(3);
+      document.getElementById("alpha-salida-alta").innerText = (alphas.Alta || 0).toFixed(3);
+
+      const width = 800;
+      const height = 220;
+      const padLeft = 60;
+      const padRight = 30;
+      const padTop = 30;
+      const padBottom = 40;
+
+      const plotW = width - padLeft - padRight;
+      const plotH = height - padTop - padBottom;
+
+      const scaleX = (val) => padLeft + (val / 10.0) * plotW;
+      const scaleY = (mu) => padTop + plotH - (mu * plotH);
+
+      // Crear camino SVG para el polígono agregado truncado
+      let pathAgregado = `M ${scaleX(u[0])},${scaleY(0)}`;
+      for (let i = 0; i < u.length; i++) {
+        pathAgregado += ` L ${scaleX(u[i])},${scaleY(muAgregado[i])}`;
+      }
+      pathAgregado += ` L ${scaleX(u[u.length - 1])},${scaleY(0)} Z`;
+
+      const curX = scaleX(centroide);
+
+      const svg = document.getElementById("svg-defuzzificacion");
+      svg.innerHTML = `
+        <defs>
+          <linearGradient id="grad-agregado" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#d97706" stop-opacity="0.5" />
+            <stop offset="50%" stop-color="#722F37" stop-opacity="0.3" />
+            <stop offset="100%" stop-color="#09090b" stop-opacity="0.1" />
+          </linearGradient>
+        </defs>
+
+        <!-- ZONAS LINGÜÍSTICAS DE FONDO -->
+        <rect x="${scaleX(0)}" y="${padTop}" width="${scaleX(5.30) - scaleX(0)}" height="${plotH}" fill="#f43f5e" fill-opacity="0.04" />
+        <text x="${scaleX(2.65)}" y="${padTop + 16}" fill="#f43f5e" font-size="10" font-weight="bold" text-anchor="middle" letter-spacing="1">ZONA BAJA (&lt; 5.30)</text>
+
+        <rect x="${scaleX(5.30)}" y="${padTop}" width="${scaleX(6.60) - scaleX(5.30)}" height="${plotH}" fill="#f59e0b" fill-opacity="0.05" />
+        <text x="${scaleX(5.95)}" y="${padTop + 16}" fill="#f59e0b" font-size="10" font-weight="bold" text-anchor="middle" letter-spacing="1">MEDIA</text>
+
+        <rect x="${scaleX(6.60)}" y="${padTop}" width="${scaleX(10.0) - scaleX(6.60)}" height="${plotH}" fill="#10b981" fill-opacity="0.04" />
+        <text x="${scaleX(8.30)}" y="${padTop + 16}" fill="#10b981" font-size="10" font-weight="bold" text-anchor="middle" letter-spacing="1">ZONA ALTA (≥ 6.60)</text>
+
+        <!-- Ejes y Líneas Guía -->
+        <line x1="${padLeft}" y1="${padTop}" x2="${padLeft}" y2="${height - padBottom}" stroke="#3f3f46" stroke-width="1.5" />
+        <line x1="${padLeft}" y1="${height - padBottom}" x2="${width - padRight}" y2="${height - padBottom}" stroke="#3f3f46" stroke-width="1.5" />
+
+        <line x1="${padLeft}" y1="${scaleY(0.5)}" x2="${width - padRight}" y2="${scaleY(0.5)}" stroke="#27272a" stroke-dasharray="4 4" />
+        <text x="${padLeft - 10}" y="${scaleY(0.5) + 4}" fill="#71717a" font-size="10" text-anchor="end" font-family="monospace">0.5</text>
+        <line x1="${padLeft}" y1="${scaleY(1.0)}" x2="${width - padRight}" y2="${scaleY(1.0)}" stroke="#27272a" stroke-dasharray="4 4" />
+        <text x="${padLeft - 10}" y="${scaleY(1.0) + 4}" fill="#71717a" font-size="10" text-anchor="end" font-family="monospace">1.0</text>
+
+        <!-- Ticks del Universo [0, 10] -->
+        ${[0, 2, 4, 5.3, 6.6, 8, 10].map(val => `
+          <line x1="${scaleX(val)}" y1="${height - padBottom}" x2="${scaleX(val)}" y2="${height - padBottom + 4}" stroke="#71717a" />
+          <text x="${scaleX(val)}" y="${height - padBottom + 16}" fill="${val === 5.3 ? '#f59e0b' : (val === 6.6 ? '#10b981' : '#a1a1aa')}" font-size="10" text-anchor="middle" font-family="monospace" font-weight="${val === 5.3 || val === 6.6 ? 'bold' : 'normal'}">${val}</text>
+        `).join('')}
+
+        <!-- Polígono Agregado Mamdani (MAX) -->
+        <path d="${pathAgregado}" fill="url(#grad-agregado)" stroke="#f59e0b" stroke-width="2.5" />
+
+        <!-- LÍNEA GLOW DEL CENTROIDE DEFUSIFICADO (CoG) -->
+        <line x1="${curX}" y1="${padTop - 5}" x2="${curX}" y2="${height - padBottom}" stroke="#ffffff" stroke-width="2.5" />
+        <polygon points="${curX - 6},${padTop - 8} ${curX + 6},${padTop - 8} ${curX},${padTop}" fill="#ffffff" />
+        
+        <!-- Marcador Diamante del Centroide en el Eje -->
+        <polygon points="${curX},${height - padBottom - 6} ${curX + 6},${height - padBottom} ${curX},${height - padBottom + 6} ${curX - 6},${height - padBottom}" fill="#fbbf24" stroke="#000000" stroke-width="1.5" />
+        
+        <!-- Cartela flotante del Centroide -->
+        <g transform="translate(${curX}, ${padTop - 12})">
+          <rect x="-55" y="-18" width="110" height="20" rx="4" fill="#18181b" stroke="#f59e0b" stroke-width="1.5" />
+          <text x="0" y="-4" fill="#fbbf24" font-size="11" font-weight="extrabold" text-anchor="middle" font-family="monospace">
+            CoG = ${centroide.toFixed(2)}
+          </text>
+        </g>
+      `;
+    }
+
+    // 12. CARGA DE PRESETS ENOLÓGICOS
+    function cargarPreset(tipo) {
+      if (!datosFuzzy || !datosFuzzy.perfiles_predefinidos[tipo]) return;
+      const muestra = datosFuzzy.perfiles_predefinidos[tipo];
+      solicitarDatosFuzzy(muestra);
+    }
+
+    function resetearValores() {
+      solicitarDatosFuzzy({});
+    }
+
+    // 13. MEJORA 4: EXPORTAR INSTANTÁNEA SVG COMPLETA
+    function exportarInstantaneaFuzzy() {
+      if (!datosFuzzy) {
+        alert("Aguarde a que los datos estén completamente cargados.");
+        return;
+      }
+
+      const svgFuzz = document.getElementById("svg-fuzzificacion").innerHTML;
+      const svgDefuzz = document.getElementById("svg-defuzzificacion").innerHTML;
+      const defuzz = datosFuzzy.defuzzificacion;
+      const timestamp = new Date().toLocaleString();
+
+      // Composición de un documento SVG independiente de alta resolución
+      const exportSvgContent = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 680" width="100%" height="100%">
+  <rect width="900" height="680" fill="#09090b" />
+  
+  <!-- CABECERA -->
+  <text x="40" y="45" fill="#fafafa" font-size="18" font-weight="bold" font-family="sans-serif">Wine Quality AI — Reporte Difuso Mamdani (XAI)</text>
+  <text x="40" y="65" fill="#a1a1aa" font-size="11" font-family="sans-serif">Generado: ${timestamp} | Variable Inspeccionada: ${variableSeleccionada}</text>
+  
+  <!-- RESULTADO RESUMEN -->
+  <rect x="620" y="25" width="240" height="50" rx="8" fill="#18181b" stroke="#3f3f46" />
+  <text x="640" y="46" fill="#a1a1aa" font-size="10" font-family="sans-serif">CENTROIDE CoG / CLASE</text>
+  <text x="640" y="66" fill="#f59e0b" font-size="14" font-weight="bold" font-family="monospace">${defuzz.centroide.toFixed(2)} / 10 — CALIDAD ${defuzz.clase_predicha.toUpperCase()}</text>
+
+  <!-- FASE 1: FUZZIFICACIÓN -->
+  <text x="40" y="115" fill="#fafafa" font-size="14" font-weight="bold" font-family="sans-serif">1. Fuzzificación Continua (Funciones de Pertenencia)</text>
+  <g transform="translate(40, 125)">
+    ${svgFuzz}
+  </g>
+
+  <!-- FASE 3: DEFUZZIFICACIÓN -->
+  <text x="40" y="410" fill="#fafafa" font-size="14" font-weight="bold" font-family="sans-serif">2. Agregación y Defuzzificación por Centroide CoG</text>
+  <g transform="translate(40, 420)">
+    ${svgDefuzz}
+  </g>
+</svg>`;
+
+      const blob = new Blob([exportSvgContent], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `wine_fuzzy_analysis_${variableSeleccionada}_${defuzz.clase_predicha}.svg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
