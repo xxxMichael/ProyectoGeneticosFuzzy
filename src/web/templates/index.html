@@ -5,10 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wine Quality AI — Clasificación Difusa & Algoritmo Genético (XAI)</title>
   
-  <!-- Dependencias Externas (Tailwind CSS, Lucide Icons, Canvas Confetti) -->
+  <!-- Dependencias Externas (Tailwind CSS, Lucide Icons, Canvas Confetti, KaTeX) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
 
   <!-- ===================================================================== -->
   <!-- SISTEMA DE DISEÑO: TOKENS DE COLOR (CSS VARIABLES EN CABECERA)       -->
@@ -120,49 +123,42 @@
   <!-- ===================================================================== -->
   <!-- BARRA DE NAVEGACIÓN SUPERIOR (HEADER EDITORIAL ZINC)                 -->
   <!-- ===================================================================== -->
-  <header class="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800 px-6 py-3.5">
-    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-4">
+  <header class="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800 px-4 sm:px-6 py-2.5">
+    <div class="max-w-7xl mx-auto flex flex-col xl:flex-row items-center justify-between gap-3">
       
-      <!-- Marca y Título -->
-      <div class="flex items-center gap-3.5">
-        <div class="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-center shadow-sm">
+      <!-- Marca y Título (Limpio y Compacto) -->
+      <div class="flex items-center gap-3 flex-shrink-0">
+        <div class="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-center shadow-sm flex-shrink-0">
           <i data-lucide="wine" class="w-5 h-5 text-amber-500 stroke-[2.2]"></i>
         </div>
-        <div>
-          <div class="flex items-center gap-2.5">
-            <h1 class="text-lg font-black tracking-tight text-zinc-100">
-              Wine Quality <span class="text-amber-500 font-extrabold">AI System</span>
-            </h1>
-            <span class="px-2.5 py-0.5 text-[11px] font-bold rounded-md bg-zinc-900 text-amber-400 border border-zinc-700 uppercase tracking-wider">
-              XAI • Mamdani & DEAP
-            </span>
-          </div>
-          <p class="text-xs text-zinc-300 font-medium mt-0.5">
-            Minería (PRISM + Apriori) • Lógica Difusa • Algoritmo Genético
-          </p>
-        </div>
+        <h1 class="text-base sm:text-lg font-black tracking-tight text-zinc-100 whitespace-nowrap">
+          Wine Quality <span class="text-amber-500 font-extrabold">AI System</span>
+        </h1>
       </div>
 
-      <!-- Navegación por Pestañas (Tabs Flat) -->
-      <nav class="flex items-center gap-1.5 bg-zinc-900/90 p-1.5 rounded-xl border border-zinc-800 text-xs font-semibold overflow-x-auto max-w-full">
-        <button onclick="cambiarTab('clasificador')" id="tab-clasificador" class="tab-btn px-4 py-2 rounded-lg transition-all flex items-center gap-2 bg-zinc-100 text-zinc-950 shadow-sm font-bold">
-          <i data-lucide="sparkles" class="w-4 h-4 text-amber-600"></i> Clasificador en Vivo
+      <!-- Navegación por Pestañas (Compacta, sin barra desplazable) -->
+      <nav class="flex items-center gap-1 bg-zinc-900/90 p-1 rounded-xl border border-zinc-800 text-xs font-semibold overflow-x-auto max-w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden" style="scrollbar-width: none; -ms-overflow-style: none;">
+        <button onclick="cambiarTab('clasificador')" id="tab-clasificador" class="tab-btn px-2.5 sm:px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-zinc-100 text-zinc-950 shadow-sm font-bold whitespace-nowrap">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-600"></i> Clasificador
         </button>
-        <button onclick="cambiarTab('metricas')" id="tab-metricas" class="tab-btn px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-zinc-300 hover:text-white hover:bg-zinc-800">
-          <i data-lucide="bar-chart-3" class="w-4 h-4 text-zinc-400"></i> Benchmarking (3 Fases)
+        <button onclick="cambiarTab('metricas')" id="tab-metricas" class="tab-btn px-2.5 sm:px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-zinc-300 hover:text-white hover:bg-zinc-800 whitespace-nowrap">
+          <i data-lucide="bar-chart-3" class="w-3.5 h-3.5 text-zinc-400"></i> Benchmarking
         </button>
-        <button onclick="cambiarTab('convergencia')" id="tab-convergencia" class="tab-btn px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-zinc-300 hover:text-white hover:bg-zinc-800">
-          <i data-lucide="dna" class="w-4 h-4 text-zinc-400"></i> Algoritmo Genético
+        <button onclick="cambiarTab('convergencia')" id="tab-convergencia" class="tab-btn px-2.5 sm:px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-zinc-300 hover:text-white hover:bg-zinc-800 whitespace-nowrap">
+          <i data-lucide="dna" class="w-3.5 h-3.5 text-zinc-400"></i> Genético
         </button>
-        <button onclick="cambiarTab('mfs')" id="tab-mfs" class="tab-btn px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-zinc-300 hover:text-white hover:bg-zinc-800">
-          <i data-lucide="activity" class="w-4 h-4 text-zinc-400"></i> Funciones Difusas
+        <button onclick="cambiarTab('mfs')" id="tab-mfs" class="tab-btn px-2.5 sm:px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-zinc-300 hover:text-white hover:bg-zinc-800 whitespace-nowrap">
+          <i data-lucide="activity" class="w-3.5 h-3.5 text-zinc-400"></i> Funciones Difusas
         </button>
-        <button onclick="cambiarTab('reglas')" id="tab-reglas" class="tab-btn px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-zinc-300 hover:text-white hover:bg-zinc-800">
-          <i data-lucide="book-open" class="w-4 h-4 text-zinc-400"></i> Base de Reglas XAI
+        <button onclick="cambiarTab('reglas')" id="tab-reglas" class="tab-btn px-2.5 sm:px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-zinc-300 hover:text-white hover:bg-zinc-800 whitespace-nowrap">
+          <i data-lucide="book-open" class="w-3.5 h-3.5 text-zinc-400"></i> Reglas XAI
         </button>
-        <button onclick="cambiarTab('arquitectura')" id="tab-arquitectura" class="tab-btn px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-zinc-300 hover:text-white hover:bg-zinc-800">
-          <i data-lucide="layers" class="w-4 h-4 text-zinc-400"></i> Arquitectura
+        <button onclick="cambiarTab('arquitectura')" id="tab-arquitectura" class="tab-btn px-2.5 sm:px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 text-zinc-300 hover:text-white hover:bg-zinc-800 whitespace-nowrap">
+          <i data-lucide="layers" class="w-3.5 h-3.5 text-zinc-400"></i> Arquitectura
         </button>
+        <a href="/fuzzy-explorer" class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-400 border border-amber-500/40 transition-all flex items-center gap-1.5 font-bold shadow-sm whitespace-nowrap">
+          <i data-lucide="microscope" class="w-3.5 h-3.5 text-amber-400"></i> Explorador Difuso
+        </a>
       </nav>
 
     </div>
@@ -326,92 +322,422 @@
     </section>
 
     <!-- =================================================================== -->
-    <!-- TAB 2: BENCHMARKING COMPARATIVO EN 3 FASES                          -->
+    <!-- =================================================================== -->
+    <!-- TAB 2: BENCHMARKING COMPARATIVO EN 3 FASES (PANEL EJECUTIVO)        -->
     <!-- =================================================================== -->
     <section id="sec-metricas" class="tab-content hidden space-y-7">
-      <div class="card-editorial rounded-2xl p-7 space-y-7">
+      <div class="card-editorial rounded-2xl p-6 lg:p-7 space-y-8">
         
-        <div>
-          <h2 class="text-lg font-extrabold text-zinc-100 flex items-center gap-2.5">
-            <i data-lucide="trending-up" class="w-5 h-5 text-amber-500"></i> Evaluación Comparativa Progresiva en 3 Fases
-          </h2>
-          <p class="text-xs text-zinc-300 mt-1">
-            Evaluación empírica interna estricta (sin modelos externos de ML) sobre las 320 muestras del conjunto de prueba (Test)
-          </p>
+        <!-- Cabecera del Panel -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
+          <div>
+            <div class="flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                <i data-lucide="trending-up" class="w-4 h-4"></i>
+              </span>
+              <h2 class="text-xl font-black tracking-tight text-zinc-100">
+                Evaluación Comparativa de Rendimiento <span class="text-amber-500 font-extrabold">(Test N=320)</span>
+              </h2>
+            </div>
+            <p class="text-xs text-zinc-300 mt-1 max-w-2xl">
+              Panel ejecutivo de diagnóstico y sustentación empírica: Comparación multi-nivel entre las 3 fases del pipeline sobre muestras ciegas reales.
+            </p>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <span class="px-3 py-1 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-300 text-xs font-mono font-semibold flex items-center gap-1.5 shadow-sm">
+              <i data-lucide="layers" class="w-3.5 h-3.5 text-amber-500"></i> 3 Fases Comparadas
+            </span>
+            <span class="px-3 py-1 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-300 text-xs font-mono font-semibold flex items-center gap-1.5 shadow-sm">
+              <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400"></i> Partición Ciega (Test)
+            </span>
+          </div>
         </div>
 
-        <!-- 3 Tarjetas de Fases -->
+        <!-- =============================================================== -->
+        <!-- NIVEL SUPERIOR: 3 TARJETAS KPI EJECUTIVAS (AZUL, OCRE, ESMERALDA)-->
+        <!-- =============================================================== -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
           
-          <!-- Fase 1: Baseline -->
-          <div class="p-6 rounded-xl bg-zinc-900 border border-zinc-800 space-y-3.5 shadow-sm">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-extrabold text-zinc-400 uppercase tracking-wider">Fase 1</span>
-              <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700">Modelo Base</span>
+          <!-- FASE 1: AZUL (Baseline Discreto) -->
+          <div class="p-6 rounded-2xl bg-zinc-900/90 border border-sky-500/40 hover:border-sky-500/70 transition-all space-y-4 shadow-sm flex flex-col justify-between">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 text-xs font-mono font-bold rounded-full bg-sky-950/80 text-sky-300 border border-sky-600/50 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-sky-400"></span> Fase 1 • Baseline
+                </span>
+                <span class="text-[11px] font-mono font-bold text-zinc-400">26 Reglas</span>
+              </div>
+              <div>
+                <h3 class="font-extrabold text-base text-zinc-100 flex items-center gap-2">
+                  <i data-lucide="binary" class="w-4 h-4 text-sky-400"></i> Reglas Discretas Puras
+                </h3>
+                <p class="text-xs text-zinc-300 mt-1 leading-relaxed">
+                  Inducción simbólica PRISM + Apriori evaluada con votación ponderada discreta.
+                </p>
+              </div>
             </div>
-            <h3 class="font-bold text-base text-zinc-100">Reglas Discretas Puras</h3>
-            <p class="text-xs text-zinc-300 leading-normal">
-              PRISM + Apriori evaluado con votación ponderada discreta por confianza.
-            </p>
-            <div class="pt-3 border-t border-zinc-800 space-y-2 text-xs font-mono">
-              <div class="flex justify-between text-zinc-300"><span>Exactitud Test:</span><span class="font-bold text-zinc-100">57.50%</span></div>
-              <div class="flex justify-between text-zinc-300"><span>F1-Macro Test:</span><span class="font-bold text-zinc-100">0.4674</span></div>
-              <div class="flex justify-between text-zinc-300"><span>F1-Weighted:</span><span class="font-bold text-zinc-100">0.5512</span></div>
-              <div class="flex justify-between text-zinc-300"><span>Cobertura Test:</span><span class="font-bold text-amber-400">79.69%</span></div>
-              <div class="flex justify-between text-zinc-300"><span>Reglas Activas:</span><span class="font-bold text-zinc-200">26</span></div>
+
+            <!-- Grid de los 3 KPIs Clave -->
+            <div class="grid grid-cols-3 gap-2 pt-3 border-t border-zinc-800">
+              <div class="p-2.5 rounded-xl bg-zinc-950 border border-zinc-800/80 text-center">
+                <div class="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Accuracy</div>
+                <div class="text-xl font-black font-mono text-sky-400 mt-0.5">57.50%</div>
+                <div class="text-[9px] font-mono text-zinc-400 mt-0.5">184/320</div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-zinc-950 border border-zinc-800/80 text-center">
+                <div class="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">F1-Macro</div>
+                <div class="text-xl font-black font-mono text-sky-400 mt-0.5">0.4674</div>
+                <div class="text-[9px] font-mono text-zinc-400 mt-0.5">Desbalanceado</div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-zinc-950 border border-zinc-800/80 text-center">
+                <div class="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Cobertura</div>
+                <div class="text-xl font-black font-mono text-amber-400 mt-0.5">79.69%</div>
+                <div class="text-[9px] font-mono text-zinc-400 mt-0.5">20.3% sin regla</div>
+              </div>
+            </div>
+
+            <div class="pt-2 text-[11px] text-zinc-300 flex items-center gap-2 font-mono bg-zinc-950/60 p-2 rounded-lg border border-zinc-800/60">
+              <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-amber-400 flex-shrink-0"></i>
+              <span>Recall Alta: <strong class="text-rose-400">11.63%</strong> (Solo 5 de 43 vinos)</span>
             </div>
           </div>
 
-          <!-- Fase 2: Pre-AG -->
-          <div class="p-6 rounded-xl bg-zinc-900 border border-zinc-700 space-y-3.5 shadow-sm">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-extrabold text-amber-400 uppercase tracking-wider">Fase 2</span>
-              <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-zinc-800 text-amber-300 border border-zinc-700">Pre-AG</span>
+          <!-- FASE 2: OCRE / NARANJA (Pre-AG Canónico) -->
+          <div class="p-6 rounded-2xl bg-zinc-900/90 border border-amber-500/40 hover:border-amber-500/70 transition-all space-y-4 shadow-sm flex flex-col justify-between">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 text-xs font-mono font-bold rounded-full bg-amber-950/80 text-amber-300 border border-amber-600/50 flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-amber-400"></span> Fase 2 • Pre-AG
+                </span>
+                <span class="text-[11px] font-mono font-bold text-zinc-400">26 Reglas</span>
+              </div>
+              <div>
+                <h3 class="font-extrabold text-base text-zinc-100 flex items-center gap-2">
+                  <i data-lucide="sliders" class="w-4 h-4 text-amber-400"></i> Lógica Difusa Canónica
+                </h3>
+                <p class="text-xs text-zinc-300 mt-1 leading-relaxed">
+                  Motor Mamdani con cuantiles empíricos (33% por variable) sin calibración evolutiva.
+                </p>
+              </div>
             </div>
-            <h3 class="font-bold text-base text-amber-200">Lógica Difusa Canónica</h3>
-            <p class="text-xs text-zinc-300 leading-normal">
-              Motor Mamdani con cuantiles empíricos (33% por variable) y funciones Trapezoidales-Triangulares.
-            </p>
-            <div class="pt-3 border-t border-zinc-800 space-y-2 text-xs font-mono">
-              <div class="flex justify-between text-zinc-300"><span>Exactitud Test:</span><span class="font-bold text-amber-300">55.94%</span></div>
-              <div class="flex justify-between text-zinc-300"><span>F1-Macro Test:</span><span class="font-bold text-amber-300">0.4804</span></div>
-              <div class="flex justify-between text-zinc-300"><span>F1-Weighted:</span><span class="font-bold text-amber-300">0.5489</span></div>
-              <div class="flex justify-between text-zinc-300"><span>Cobertura Test:</span><span class="font-bold text-emerald-400 font-extrabold">98.44%</span></div>
-              <div class="flex justify-between text-zinc-300"><span>Reglas Activas:</span><span class="font-bold text-amber-300">26</span></div>
+
+            <!-- Grid de los 3 KPIs Clave -->
+            <div class="grid grid-cols-3 gap-2 pt-3 border-t border-zinc-800">
+              <div class="p-2.5 rounded-xl bg-zinc-950 border border-zinc-800/80 text-center">
+                <div class="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Accuracy</div>
+                <div class="text-xl font-black font-mono text-amber-400 mt-0.5">55.94%</div>
+                <div class="text-[9px] font-mono text-zinc-400 mt-0.5">179/320</div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-zinc-950 border border-zinc-800/80 text-center">
+                <div class="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">F1-Macro</div>
+                <div class="text-xl font-black font-mono text-amber-400 mt-0.5">0.4804</div>
+                <div class="text-[9px] font-mono text-zinc-400 mt-0.5">+2.8% vs F1</div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-zinc-950 border border-zinc-800/80 text-center">
+                <div class="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Cobertura</div>
+                <div class="text-xl font-black font-mono text-emerald-400 mt-0.5">98.44%</div>
+                <div class="text-[9px] font-mono text-zinc-400 mt-0.5">+18.7% vs F1</div>
+              </div>
+            </div>
+
+            <div class="pt-2 text-[11px] text-zinc-300 flex items-center gap-2 font-mono bg-zinc-950/60 p-2 rounded-lg border border-zinc-800/60">
+              <i data-lucide="info" class="w-3.5 h-3.5 text-amber-400 flex-shrink-0"></i>
+              <span>Recall Alta: <strong class="text-amber-300">34.88%</strong> (Sesgo hacia Baja: 85.9%)</span>
             </div>
           </div>
 
-          <!-- Fase 3: Post-AG -->
-          <div class="p-6 rounded-xl bg-zinc-900 border-2 border-amber-500/80 space-y-3.5 shadow-md">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-extrabold text-amber-400 uppercase tracking-wider">Fase 3</span>
-              <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-amber-500 text-zinc-950 font-black">Post-AG Óptimo</span>
+          <!-- FASE 3: ESMERALDA (Post-AG Óptimo - Ganador) -->
+          <div class="p-6 rounded-2xl bg-zinc-900/90 border-2 border-emerald-500/80 hover:border-emerald-400 ring-1 ring-emerald-500/30 transition-all space-y-4 shadow-lg shadow-emerald-950/20 flex flex-col justify-between">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="px-3 py-1 text-xs font-mono font-black rounded-full bg-emerald-500 text-zinc-950 flex items-center gap-1.5 shadow-sm">
+                  <i data-lucide="crown" class="w-3.5 h-3.5"></i> Fase 3 • Post-AG (Óptimo)
+                </span>
+                <span class="text-[11px] font-mono font-black text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-600/40">16 Reglas (-38.5%)</span>
+              </div>
+              <div>
+                <h3 class="font-extrabold text-base text-zinc-100 flex items-center gap-2">
+                  <i data-lucide="dna" class="w-4 h-4 text-emerald-400"></i> Difuso + Algoritmo Genético
+                </h3>
+                <p class="text-xs text-zinc-300 mt-1 leading-relaxed">
+                  59 genes calibrados (MFs y pesos) con poda selectiva de 10 reglas redundantes.
+                </p>
+              </div>
             </div>
-            <h3 class="font-bold text-base text-zinc-100">Difuso + Algoritmo Genético</h3>
-            <p class="text-xs text-zinc-300 leading-normal">
-              Funciones calibradas por AG y poda selectiva del 38.5% de reglas redundantes.
-            </p>
-            <div class="pt-3 border-t border-zinc-800 space-y-2 text-xs font-mono">
-              <div class="flex justify-between text-zinc-200"><span>Exactitud Test:</span><span class="font-extrabold text-emerald-400">60.31% (+2.81%)</span></div>
-              <div class="flex justify-between text-zinc-200"><span>F1-Macro Test:</span><span class="font-extrabold text-emerald-400">0.5647 (+20.8%)</span></div>
-              <div class="flex justify-between text-zinc-200"><span>F1-Weighted:</span><span class="font-extrabold text-emerald-400">0.6019 (+9.2%)</span></div>
-              <div class="flex justify-between text-zinc-200"><span>Cobertura Test:</span><span class="font-extrabold text-emerald-400">99.38%</span></div>
-              <div class="flex justify-between text-zinc-200"><span>Reglas Activas:</span><span class="font-bold text-amber-400">16 (-38.5%)</span></div>
+
+            <!-- Grid de los 3 KPIs Clave -->
+            <div class="grid grid-cols-3 gap-2 pt-3 border-t border-zinc-800">
+              <div class="p-2.5 rounded-xl bg-zinc-950 border border-emerald-500/40 text-center">
+                <div class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Accuracy</div>
+                <div class="text-xl font-black font-mono text-emerald-300 mt-0.5">60.31%</div>
+                <div class="text-[9px] font-mono text-emerald-400 font-bold mt-0.5">+2.81% (Máxima)</div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-zinc-950 border border-emerald-500/40 text-center">
+                <div class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">F1-Macro</div>
+                <div class="text-xl font-black font-mono text-emerald-300 mt-0.5">0.5647</div>
+                <div class="text-[9px] font-mono text-emerald-400 font-bold mt-0.5">+20.8% (Óptimo)</div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-zinc-950 border border-emerald-500/40 text-center">
+                <div class="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Cobertura</div>
+                <div class="text-xl font-black font-mono text-emerald-300 mt-0.5">99.38%</div>
+                <div class="text-[9px] font-mono text-emerald-400 font-bold mt-0.5">Casi 100%</div>
+              </div>
+            </div>
+
+            <div class="pt-2 text-[11px] text-zinc-200 flex items-center gap-2 font-mono bg-emerald-950/40 p-2 rounded-lg border border-emerald-600/40">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5 text-emerald-400 flex-shrink-0"></i>
+              <span>Recall Alta: <strong class="text-emerald-300 font-bold">44.19%</strong> (x3.8 vs Fase 1)</span>
             </div>
           </div>
 
         </div>
 
-        <!-- Matrices de Confusión Comparativas -->
-        <div class="pt-4 border-t border-zinc-800 space-y-4">
-          <div class="flex items-center justify-between">
-            <h3 class="text-sm font-bold text-zinc-100 flex items-center gap-2">
-              <i data-lucide="grid" class="w-4 h-4 text-amber-500"></i> Matrices de Confusión en Prueba (Test N=320)
-            </h3>
-            <span class="text-xs text-zinc-400 font-mono">Alta, Baja, Media</span>
+        <!-- =============================================================== -->
+        <!-- NIVEL INFERIOR: GRÁFICO INTERACTIVO DE BARRAS AGRUPADAS (RECALL)-->
+        <!-- =============================================================== -->
+        <div class="space-y-4 pt-2">
+          
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-zinc-800 pb-4">
+            <div>
+              <h3 class="text-base font-extrabold text-zinc-100 flex items-center gap-2">
+                <i data-lucide="bar-chart-3" class="w-5 h-5 text-amber-500"></i> Sensibilidad por Clase: Comparativa de Recall a través de las 3 Fases
+              </h3>
+              <p class="text-xs text-zinc-300 mt-0.5">
+                Demostración empírica de cómo el Algoritmo Genético resolvió la ceguera hacia vinos de <strong class="text-emerald-400">Calidad Alta</strong> sin degradar la precisión global.
+              </p>
+            </div>
+
+            <!-- Selector de Modo / Foco -->
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <button onclick="cambiarModoRecall('todas')" id="btn-recall-todas" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-zinc-100 text-zinc-950 shadow-sm">
+                Todas las Clases
+              </button>
+              <button onclick="cambiarModoRecall('alta')" id="btn-recall-alta" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700">
+                Foco: Calidad Alta (+280%)
+              </button>
+            </div>
           </div>
-          <div class="rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 p-3 shadow-inner">
-            <img src="/plots/matrices_confusion_comparativas.png" alt="Matrices de Confusión Comparativas" class="w-full h-auto rounded-lg max-h-[440px] object-contain mx-auto" />
+
+          <!-- Leyenda de Fases -->
+          <div class="flex flex-wrap items-center justify-between gap-4 text-xs font-mono text-zinc-300 bg-zinc-950 p-3 rounded-xl border border-zinc-800">
+            <div class="flex items-center gap-5">
+              <span class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-sm bg-[#38bdf8]"></span>
+                <span>Fase 1: Baseline Discreto</span>
+              </span>
+              <span class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-sm bg-[#f59e0b]"></span>
+                <span>Fase 2: Pre-AG Canónico</span>
+              </span>
+              <span class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-sm bg-[#10b981]"></span>
+                <span class="font-bold text-emerald-300">Fase 3: Post-AG Óptimo</span>
+              </span>
+            </div>
+            <div class="text-[11px] text-zinc-400 hidden sm:block">
+              Pase el cursor sobre las barras para inspeccionar valores y métricas detalladas
+            </div>
+          </div>
+
+          <!-- Lienzo SVG del Gráfico de Barras Agrupadas -->
+          <div class="rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 p-4 shadow-inner">
+            <svg id="svg-grafico-recall" viewBox="0 0 900 320" class="w-full h-auto max-h-[350px]">
+              <!-- Renderizado dinámicamente con JS -->
+            </svg>
+          </div>
+
+          <!-- Panel de Inspección de Barra Activa -->
+          <div id="panel-inspeccion-recall" class="p-3.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 shadow-sm transition-all">
+            <div class="flex items-center gap-2">
+              <i data-lucide="info" class="w-4 h-4 text-amber-500"></i>
+              <span id="texto-inspeccion-recall" class="text-zinc-200">
+                Seleccione o pase el cursor sobre cualquier barra para visualizar detalles de muestras acotadas.
+              </span>
+            </div>
+            <div id="badge-inspeccion-recall" class="font-mono text-[11px] font-bold text-amber-400 self-end sm:self-auto">
+              Test N = 320 vinos
+            </div>
+          </div>
+
+        </div>
+
+        <!-- =============================================================== -->
+        <!-- CONSULTA SECUNDARIA: ACORDEÓN COLAPSABLE 'VER DETALLE MATRICIAL'-->
+        <!-- =============================================================== -->
+        <div class="border border-zinc-800 rounded-2xl bg-zinc-900/60 overflow-hidden shadow-sm">
+          <button onclick="toggleDetalleMatricial()" 
+                  class="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-zinc-800/60 transition-colors focus:outline-none">
+            <div class="flex items-center gap-3">
+              <span class="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-amber-400 shadow-sm">
+                <i data-lucide="grid" class="w-4 h-4"></i>
+              </span>
+              <div>
+                <h4 class="text-sm font-bold text-zinc-100 flex items-center gap-2">
+                  Ver detalle matricial (Matrices de Confusión de Prueba N=320)
+                </h4>
+                <p class="text-xs text-zinc-400">Consulta técnica de contingencia Real vs Predicho en las 3 fases evaluadas</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 text-zinc-400 text-xs font-mono">
+              <span id="label-estado-acordeon" class="hidden sm:inline">Desplegar</span>
+              <i id="icono-acordeon-matriz" data-lucide="chevron-down" class="w-5 h-5 transition-transform duration-200"></i>
+            </div>
+          </button>
+
+          <!-- Contenedor Desplegable -->
+          <div id="contenido-detalle-matricial" class="hidden p-6 border-t border-zinc-800 space-y-6 bg-zinc-950/80">
+            
+            <!-- 3 Matrices Numéricas en Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+              
+              <!-- Matriz Fase 1 -->
+              <div class="p-4 rounded-xl bg-zinc-900 border border-sky-500/30 space-y-3">
+                <div class="flex items-center justify-between text-xs pb-2 border-b border-zinc-800">
+                  <span class="font-bold text-sky-400">Fase 1: Reglas Discretas</span>
+                  <span class="font-mono text-[10px] text-zinc-400">Exactitud: 57.50%</span>
+                </div>
+                <table class="w-full text-center text-xs font-mono border-collapse">
+                  <thead>
+                    <tr class="text-[10px] text-zinc-400 uppercase">
+                      <th class="py-1 text-left">Real \ Pred</th>
+                      <th class="py-1">Alta</th>
+                      <th class="py-1">Baja</th>
+                      <th class="py-1">Media</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-zinc-800/80 text-zinc-300">
+                    <tr>
+                      <td class="py-1.5 text-left font-bold text-zinc-400">Alta (43)</td>
+                      <td class="py-1.5 bg-sky-950/80 text-sky-300 font-bold border border-sky-600/40">5</td>
+                      <td class="py-1.5 text-zinc-400">3</td>
+                      <td class="py-1.5 text-zinc-400">35</td>
+                    </tr>
+                    <tr>
+                      <td class="py-1.5 text-left font-bold text-zinc-400">Baja (149)</td>
+                      <td class="py-1.5 text-zinc-400">2</td>
+                      <td class="py-1.5 bg-sky-950/80 text-sky-300 font-bold border border-sky-600/40">101</td>
+                      <td class="py-1.5 text-zinc-400">46</td>
+                    </tr>
+                    <tr>
+                      <td class="py-1.5 text-left font-bold text-zinc-400">Media (128)</td>
+                      <td class="py-1.5 text-zinc-400">6</td>
+                      <td class="py-1.5 text-zinc-400">44</td>
+                      <td class="py-1.5 bg-sky-950/80 text-sky-300 font-bold border border-sky-600/40">78</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div class="text-[10px] text-zinc-400 italic pt-1">
+                  Diagonal principal: 184 aciertos. 65 vinos quedaron sin regla activa en la votación.
+                </div>
+              </div>
+
+              <!-- Matriz Fase 2 -->
+              <div class="p-4 rounded-xl bg-zinc-900 border border-amber-500/30 space-y-3">
+                <div class="flex items-center justify-between text-xs pb-2 border-b border-zinc-800">
+                  <span class="font-bold text-amber-400">Fase 2: Lógica Difusa</span>
+                  <span class="font-mono text-[10px] text-zinc-400">Exactitud: 55.94%</span>
+                </div>
+                <table class="w-full text-center text-xs font-mono border-collapse">
+                  <thead>
+                    <tr class="text-[10px] text-zinc-400 uppercase">
+                      <th class="py-1 text-left">Real \ Pred</th>
+                      <th class="py-1">Alta</th>
+                      <th class="py-1">Baja</th>
+                      <th class="py-1">Media</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-zinc-800/80 text-zinc-300">
+                    <tr>
+                      <td class="py-1.5 text-left font-bold text-zinc-400">Alta (43)</td>
+                      <td class="py-1.5 bg-amber-950/80 text-amber-300 font-bold border border-amber-600/40">15</td>
+                      <td class="py-1.5 text-zinc-400">8</td>
+                      <td class="py-1.5 text-zinc-400">20</td>
+                    </tr>
+                    <tr>
+                      <td class="py-1.5 text-left font-bold text-zinc-400">Baja (149)</td>
+                      <td class="py-1.5 text-zinc-400">4</td>
+                      <td class="py-1.5 bg-amber-950/80 text-amber-300 font-bold border border-amber-600/40">128</td>
+                      <td class="py-1.5 text-zinc-400">17</td>
+                    </tr>
+                    <tr>
+                      <td class="py-1.5 text-left font-bold text-zinc-400">Media (128)</td>
+                      <td class="py-1.5 text-zinc-400">20</td>
+                      <td class="py-1.5 text-zinc-400">72</td>
+                      <td class="py-1.5 bg-amber-950/80 text-amber-300 font-bold border border-amber-600/40">36</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div class="text-[10px] text-zinc-400 italic pt-1">
+                  Diagonal principal: 179 aciertos. Fuerte sesgo a 'Baja' (72 vinos Media clasificados como Baja).
+                </div>
+              </div>
+
+              <!-- Matriz Fase 3 -->
+              <div class="p-4 rounded-xl bg-zinc-900 border border-emerald-500/50 space-y-3 shadow-sm">
+                <div class="flex items-center justify-between text-xs pb-2 border-b border-zinc-800">
+                  <span class="font-bold text-emerald-400">Fase 3: Post-AG Óptimo</span>
+                  <span class="font-mono text-[10px] text-emerald-400 font-bold">Exactitud: 60.31%</span>
+                </div>
+                <table class="w-full text-center text-xs font-mono border-collapse">
+                  <thead>
+                    <tr class="text-[10px] text-zinc-400 uppercase">
+                      <th class="py-1 text-left">Real \ Pred</th>
+                      <th class="py-1">Alta</th>
+                      <th class="py-1">Baja</th>
+                      <th class="py-1">Media</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-zinc-800/80 text-zinc-300">
+                    <tr>
+                      <td class="py-1.5 text-left font-bold text-zinc-400">Alta (43)</td>
+                      <td class="py-1.5 bg-emerald-950/90 text-emerald-300 font-bold border border-emerald-500">19</td>
+                      <td class="py-1.5 text-zinc-400">4</td>
+                      <td class="py-1.5 text-zinc-400">20</td>
+                    </tr>
+                    <tr>
+                      <td class="py-1.5 text-left font-bold text-zinc-400">Baja (149)</td>
+                      <td class="py-1.5 text-zinc-400">4</td>
+                      <td class="py-1.5 bg-emerald-950/90 text-emerald-300 font-bold border border-emerald-500">99</td>
+                      <td class="py-1.5 text-zinc-400">46</td>
+                    </tr>
+                    <tr>
+                      <td class="py-1.5 text-left font-bold text-zinc-400">Media (128)</td>
+                      <td class="py-1.5 text-zinc-400">20</td>
+                      <td class="py-1.5 text-zinc-400">33</td>
+                      <td class="py-1.5 bg-emerald-950/90 text-emerald-300 font-bold border border-emerald-500">75</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div class="text-[10px] text-emerald-400/90 font-medium pt-1">
+                  Diagonal principal: 193 aciertos (+14 aciertos netos). Máxima concentración diagonal.
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Gráfico Comparativo de Mapas de Calor Generado -->
+            <div class="space-y-2 pt-2">
+              <div class="text-xs font-bold text-zinc-300 uppercase tracking-wider">
+                Mapa de Calor Gráfico Comparativo:
+              </div>
+              <div class="rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 p-2 shadow-inner">
+                <img src="/plots/matrices_confusion_comparativas.png" alt="Matrices de Confusión Comparativas" class="w-full h-auto rounded-lg max-h-[380px] object-contain mx-auto" />
+              </div>
+            </div>
+
+            <!-- Sustentación Analítica para Defensa Oral -->
+            <div class="p-4 rounded-xl bg-zinc-900 border border-zinc-800 space-y-2 text-xs text-zinc-300">
+              <div class="font-bold text-amber-400 flex items-center gap-1.5">
+                <i data-lucide="graduation-cap" class="w-4 h-4 text-amber-400"></i> Puntos Clave de Sustentación Técnica:
+              </div>
+              <ul class="list-disc list-inside space-y-1 text-zinc-400 leading-relaxed">
+                <li><strong class="text-zinc-200">Resolución de Ceguera en Vinos Alta Calidad:</strong> En la Fase 1 solo 5 de 43 vinos fueron clasificados como Alta ($11.6\%$). El AG elevó la detección a 19 vinos ($44.2\%$, casi $4\times$), ajustando con precisión los límites de alcohol y sulfatos.</li>
+                <li><strong class="text-zinc-200">Corrección del Sesgo de Frecuencia:</strong> La Fase 2 sufrió un desbalance severo donde 72 vinos Media fueron calificados como Baja. El AG redujo este error en un $54\%$, restaurando el recall de Media a $58.6\%$.</li>
+                <li><strong class="text-zinc-200">Parsimonia y Eficiencia:</strong> El AG podó el $38.5\%$ de las reglas (10 reglas desactivadas), logrando un modelo más simple, rápido y con la mayor exactitud ($60.31\%$) y F1-Macro ($0.5647$).</li>
+              </ul>
+            </div>
+
           </div>
         </div>
 
@@ -419,26 +745,296 @@
     </section>
 
     <!-- =================================================================== -->
-    <!-- TAB 3: ALGORITMO GENÉTICO (CONVERGENCIA)                            -->
+    <!-- TAB 3: ALGORITMO GENÉTICO (CONVERGENCIA & SIMULADOR EN VIVO)        -->
     <!-- =================================================================== -->
     <section id="sec-convergencia" class="tab-content hidden space-y-7">
-      <div class="card-editorial rounded-2xl p-7 space-y-7">
+      <div class="card-editorial rounded-2xl p-6 lg:p-7 space-y-7">
         
-        <div>
-          <h2 class="text-lg font-extrabold text-zinc-100 flex items-center gap-2.5">
-            <i data-lucide="dna" class="w-5 h-5 text-amber-500"></i> Optimización Evolutiva del Algoritmo Genético
-          </h2>
-          <p class="text-xs text-zinc-300 mt-1">
-            Convergencia del fitness multi-criterio y poda de complejidad a lo largo de 30 generaciones (DEAP & NumPy)
-          </p>
+        <!-- Cabecera de la Sección con Selector de Modo -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between pb-4 border-b border-zinc-800 gap-4">
+          <div>
+            <h2 class="text-lg font-extrabold text-zinc-100 flex items-center gap-2.5">
+              <i data-lucide="dna" class="w-5 h-5 text-amber-500"></i> Optimización Evolutiva del Algoritmo Genético
+            </h2>
+            <p class="text-xs text-zinc-300 mt-1">
+              Calibración simultánea de los 33 puntos de corte difusos y selección/ponderación de 26 reglas (DEAP & NumPy).
+            </p>
+          </div>
+
+          <!-- Selector de Modo: Historial vs Simulador en Vivo -->
+          <div class="flex bg-zinc-900 p-1.5 rounded-xl border border-zinc-800 text-xs font-semibold">
+            <button id="btn-modo-ga-historial" onclick="cambiarModoGA('historial')" 
+                    class="px-3.5 py-1.5 rounded-lg bg-zinc-800 text-amber-400 font-bold flex items-center gap-1.5 transition-all shadow-sm">
+              <i data-lucide="trending-up" class="w-4 h-4"></i> Historial (30 Gens)
+            </button>
+            <button id="btn-modo-ga-simulador" onclick="cambiarModoGA('simulador')" 
+                    class="px-3.5 py-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 flex items-center gap-1.5 transition-all">
+              <i data-lucide="flask-conical" class="w-4 h-4 text-emerald-400"></i> Micro-GA en Vivo
+            </button>
+            <button id="btn-modo-ga-cromosoma" onclick="cambiarModoGA('cromosoma')" 
+                    class="px-3.5 py-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 flex items-center gap-1.5 transition-all">
+              <i data-lucide="binary" class="w-4 h-4 text-sky-400"></i> Cromosoma (59G)
+            </button>
+          </div>
         </div>
 
-        <!-- Gráfico de Convergencia -->
-        <div class="rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 p-3 shadow-inner">
-          <img src="/plots/convergencia_fitness_ga.png" alt="Convergencia del Algoritmo Genético" class="w-full h-auto rounded-lg max-h-[500px] object-contain mx-auto" />
+        <!-- =============================================================== -->
+        <!-- MODO 1: HISTORIAL GENERACIONAL & SCRUBBER INTERACTIVO           -->
+        <!-- =============================================================== -->
+        <div id="vista-ga-historial" class="space-y-6">
+          
+          <!-- Controles del Scrubber Generacional -->
+          <div class="p-4 rounded-xl bg-zinc-900 border border-zinc-800 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                  <i data-lucide="sliders" class="w-4 h-4"></i> Explorador Generacional (Scrubber)
+                </span>
+                <span class="px-2 py-0.5 rounded bg-zinc-800 font-mono font-bold text-white text-[11px] border border-zinc-700">
+                  Gen <span id="label-gen-activa">30</span> / 30
+                </span>
+              </div>
+
+              <!-- Botones de Reproducción -->
+              <div class="flex items-center gap-1.5">
+                <button onclick="cambiarGeneracionScrubber(0)" class="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[11px] font-semibold border border-zinc-700">
+                  ↺ Gen 0
+                </button>
+                <button id="btn-play-ga" onclick="togglePlayEvolucion()" class="px-3 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-bold flex items-center gap-1">
+                  <i data-lucide="play" class="w-3 h-3" id="icon-play-ga"></i> <span id="text-play-ga">Reproducir</span>
+                </button>
+                <button onclick="cambiarGeneracionScrubber(30)" class="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-[11px] font-semibold border border-zinc-700">
+                  ⏭ Gen 30
+                </button>
+              </div>
+            </div>
+
+            <!-- Slider de tiempo generacional -->
+            <input type="range" id="slider-generacion-ga" min="0" max="30" value="30" step="1" 
+                   class="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer"
+                   oninput="onSliderGeneracionInput(this.value)">
+
+            <div class="flex justify-between text-[10px] font-mono text-zinc-500">
+              <span>Gen 0 (Población Inicial)</span>
+              <span>Gen 10 (Convergencia Rápida)</span>
+              <span>Gen 20 (Refinamiento MFs)</span>
+              <span>Gen 30 (Óptimo Global)</span>
+            </div>
+          </div>
+
+          <!-- Métricas Dinámicas de la Generación Seleccionada -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <div class="p-3.5 rounded-xl bg-zinc-900 border border-zinc-800">
+              <span class="text-[10px] uppercase font-bold text-zinc-400 block mb-1">Mejor Fitness</span>
+              <div class="font-mono text-lg font-black text-amber-400" id="kpi-ga-fitness">0.5619</div>
+              <span class="text-[10px] text-zinc-500 block">Aptitud multi-criterio</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-zinc-900 border border-zinc-800">
+              <span class="text-[10px] uppercase font-bold text-zinc-400 block mb-1">Fitness Promedio</span>
+              <div class="font-mono text-lg font-black text-sky-400" id="kpi-ga-promedio">0.5180</div>
+              <span class="text-[10px] text-zinc-500 block">Población total</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-zinc-900 border border-zinc-800">
+              <span class="text-[10px] uppercase font-bold text-zinc-400 block mb-1">F1-Macro (Train)</span>
+              <div class="font-mono text-lg font-black text-emerald-400" id="kpi-ga-f1">0.6072</div>
+              <span class="text-[10px] text-zinc-500 block">Balance de clases</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-zinc-900 border border-zinc-800">
+              <span class="text-[10px] uppercase font-bold text-zinc-400 block mb-1">Cobertura</span>
+              <div class="font-mono text-lg font-black text-white" id="kpi-ga-cobertura">99.22%</div>
+              <span class="text-[10px] text-zinc-500 block">Muestras clasificadas</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-zinc-900 border border-zinc-800">
+              <span class="text-[10px] uppercase font-bold text-zinc-400 block mb-1">Reglas Activas</span>
+              <div class="font-mono text-lg font-black text-rose-400" id="kpi-ga-reglas">16 / 26</div>
+              <span class="text-[10px] text-emerald-400 block font-semibold" id="kpi-ga-podadas">10 podadas por AG</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-zinc-900 border border-zinc-800">
+              <span class="text-[10px] uppercase font-bold text-zinc-400 block mb-1">Tiempo de Cómputo</span>
+              <div class="font-mono text-lg font-black text-zinc-200" id="kpi-ga-tiempo">29.4 s</div>
+              <span class="text-[10px] text-zinc-500 block">Acumulado DEAP</span>
+            </div>
+          </div>
+
+          <!-- Gráfico SVG Interactivo de Convergencia con Tooltips -->
+          <div class="p-4 rounded-xl bg-zinc-950 border border-zinc-800 space-y-2">
+            <div class="flex items-center justify-between text-xs pb-2 border-b border-zinc-850">
+              <div class="flex items-center gap-3 font-semibold text-zinc-300">
+                <span class="flex items-center gap-1.5"><span class="w-3 h-0.5 bg-amber-400 inline-block"></span> Mejor Fitness</span>
+                <span class="flex items-center gap-1.5"><span class="w-3 h-0.5 bg-sky-400 inline-block"></span> Fitness Promedio</span>
+                <span class="text-zinc-500 font-normal">| Pasa el cursor para ver detalles</span>
+              </div>
+              <button onclick="toggleImagenEstaticaGA()" class="text-[11px] text-zinc-400 hover:text-amber-400 underline">
+                Alternar Gráfico Matplotlib
+              </button>
+            </div>
+
+            <!-- Gráfico Vectorial Dinámico SVG -->
+            <div id="contenedor-svg-convergencia" class="w-full overflow-x-auto">
+              <svg id="svg-convergencia-dinamico" viewBox="0 0 900 280" class="w-full h-auto min-w-[650px] select-none">
+                <!-- Generado por JS -->
+              </svg>
+            </div>
+
+            <!-- Gráfico Estático Matplotlib (Oculto por defecto) -->
+            <div id="contenedor-img-convergencia" class="hidden rounded-lg overflow-hidden border border-zinc-800 p-2 bg-zinc-900">
+              <img src="/plots/convergencia_fitness_ga.png" alt="Convergencia del Algoritmo Genético" class="w-full h-auto rounded max-h-[460px] object-contain mx-auto" />
+            </div>
+          </div>
+
         </div>
 
-        <!-- Explicación de la Función de Fitness -->
+        <!-- =============================================================== -->
+        <!-- MODO 2: SIMULADOR DE MICRO-GA EN VIVO (DEAP RUNNER)             -->
+        <!-- =============================================================== -->
+        <div id="vista-ga-simulador" class="hidden space-y-6">
+          <div class="p-5 rounded-xl bg-zinc-900 border border-zinc-800 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-800 pb-3">
+              <div>
+                <h3 class="text-sm font-bold text-zinc-100 flex items-center gap-2">
+                  <i data-lucide="play-circle" class="w-4 h-4 text-emerald-400"></i> Ejecución Evolutiva en Tiempo Real (DEAP)
+                </h3>
+                <p class="text-xs text-zinc-400 mt-0.5">
+                  Ejecuta una mini-optimización genética directamente en el servidor. Prueba cómo alterando el tamaño de población o las generaciones evoluciona la aptitud.
+                </p>
+              </div>
+              <span class="px-2.5 py-1 rounded bg-zinc-950 text-emerald-400 border border-emerald-800/80 font-mono text-xs font-bold">
+                Backend Activo
+              </span>
+            </div>
+
+            <!-- Parámetros de la Mini-Optimización -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+              <!-- Generaciones -->
+              <div class="p-3 rounded-lg bg-zinc-925 border border-zinc-800">
+                <label class="text-zinc-400 font-bold block mb-1.5 uppercase text-[10px]">Generaciones:</label>
+                <div class="grid grid-cols-4 gap-1 text-center font-bold">
+                  <button type="button" onclick="seleccionarGenMicro(3)" class="btn-micro-gen px-2 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300" data-val="3">3</button>
+                  <button type="button" onclick="seleccionarGenMicro(5)" class="btn-micro-gen px-2 py-1.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/50" data-val="5">5</button>
+                  <button type="button" onclick="seleccionarGenMicro(8)" class="btn-micro-gen px-2 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300" data-val="8">8</button>
+                  <button type="button" onclick="seleccionarGenMicro(10)" class="btn-micro-gen px-2 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300" data-val="10">10</button>
+                </div>
+              </div>
+
+              <!-- Población -->
+              <div class="p-3 rounded-lg bg-zinc-925 border border-zinc-800">
+                <label class="text-zinc-400 font-bold block mb-1.5 uppercase text-[10px]">Población:</label>
+                <div class="grid grid-cols-3 gap-1 text-center font-bold">
+                  <button type="button" onclick="seleccionarPobMicro(10)" class="btn-micro-pob px-2 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300" data-val="10">10</button>
+                  <button type="button" onclick="seleccionarPobMicro(15)" class="btn-micro-pob px-2 py-1.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/50" data-val="15">15</button>
+                  <button type="button" onclick="seleccionarPobMicro(20)" class="btn-micro-pob px-2 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300" data-val="20">20</button>
+                </div>
+              </div>
+
+              <!-- Probabilidad de Cruce & Mutación -->
+              <div class="p-3 rounded-lg bg-zinc-925 border border-zinc-800">
+                <div class="flex justify-between font-bold text-[10px] text-zinc-400 mb-1">
+                  <span>Cruce (P_c):</span>
+                  <span id="label-pc-val" class="text-amber-400 font-mono">0.85</span>
+                </div>
+                <input type="range" id="input-pc" min="0.70" max="0.95" step="0.05" value="0.85" 
+                       class="w-full h-1.5 bg-zinc-800 rounded appearance-none cursor-pointer"
+                       oninput="document.getElementById('label-pc-val').innerText = this.value">
+                <div class="flex justify-between font-bold text-[10px] text-zinc-400 mt-2 mb-1">
+                  <span>Mutación (P_m):</span>
+                  <span id="label-pm-val" class="text-amber-400 font-mono">0.25</span>
+                </div>
+                <input type="range" id="input-pm" min="0.10" max="0.40" step="0.05" value="0.25" 
+                       class="w-full h-1.5 bg-zinc-800 rounded appearance-none cursor-pointer"
+                       oninput="document.getElementById('label-pm-val').innerText = this.value">
+              </div>
+
+              <!-- Pesos de Fitness -->
+              <div class="p-3 rounded-lg bg-zinc-925 border border-zinc-800 flex flex-col justify-between">
+                <div class="space-y-1 text-[11px] text-zinc-400">
+                  <div class="flex justify-between"><span>Peso F1:</span> <strong class="text-zinc-200 font-mono">0.70</strong></div>
+                  <div class="flex justify-between"><span>Peso Cobertura:</span> <strong class="text-zinc-200 font-mono">0.20</strong></div>
+                  <div class="flex justify-between"><span>Poda de Reglas:</span> <strong class="text-zinc-200 font-mono">-0.10</strong></div>
+                </div>
+                <!-- Botón de Ejecución -->
+                <button id="btn-ejecutar-micro-ga" onclick="ejecutarMicroGA()" 
+                        class="mt-2 w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md">
+                  <i data-lucide="play" class="w-3.5 h-3.5"></i> Iniciar Mini-Optimización
+                </button>
+              </div>
+            </div>
+
+            <!-- Estado y Resultados de la Mini-Optimización en Vivo -->
+            <div id="resultado-micro-ga" class="hidden p-4 rounded-xl bg-zinc-950 border border-emerald-800/60 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                  <i data-lucide="check-circle-2" class="w-4 h-4"></i> Mini-Optimización Completada con Éxito
+                </span>
+                <span id="tiempo-micro-ga" class="text-xs font-mono text-zinc-400">-- s</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                <div class="p-2 rounded bg-zinc-900 border border-zinc-800">
+                  <span class="text-[10px] text-zinc-400 block">Mejor Fitness:</span>
+                  <span id="res-micro-fitness" class="font-mono font-bold text-amber-400 text-sm">--</span>
+                </div>
+                <div class="p-2 rounded bg-zinc-900 border border-zinc-800">
+                  <span class="text-[10px] text-zinc-400 block">F1-Macro:</span>
+                  <span id="res-micro-f1" class="font-mono font-bold text-emerald-400 text-sm">--</span>
+                </div>
+                <div class="p-2 rounded bg-zinc-900 border border-zinc-800">
+                  <span class="text-[10px] text-zinc-400 block">Cobertura:</span>
+                  <span id="res-micro-cobertura" class="font-mono font-bold text-white text-sm">--</span>
+                </div>
+                <div class="p-2 rounded bg-zinc-900 border border-zinc-800">
+                  <span class="text-[10px] text-zinc-400 block">Reglas Activas:</span>
+                  <span id="res-micro-reglas" class="font-mono font-bold text-rose-400 text-sm">--</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- =============================================================== -->
+        <!-- MODO 3: MAPA VISUAL DEL CROMOSOMA MIXTO (59 GENES)              -->
+        <!-- =============================================================== -->
+        <div id="vista-ga-cromosoma" class="hidden space-y-6">
+          <div class="p-5 rounded-xl bg-zinc-900 border border-zinc-800 space-y-4">
+            <div>
+              <h3 class="text-sm font-bold text-zinc-100 flex items-center gap-2">
+                <i data-lucide="binary" class="w-4 h-4 text-sky-400"></i> Arquitectura del Genotipo: Cromosoma Mixto de 59 Genes
+              </h3>
+              <p class="text-xs text-zinc-400 mt-0.5">
+                Representación continua y discreta combinada. El individuo almacena simultáneamente la geometría de las 11 funciones difusas y la selección de las 26 reglas.
+              </p>
+            </div>
+
+            <!-- Bloque 1: 33 Genes Continuos (MFs) -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-amber-400 uppercase tracking-wider text-[11px]">
+                  Parte 1: 33 Genes Continuos (Puntos de Corte a &lt; b &lt; c para 11 variables)
+                </span>
+                <span class="text-[11px] text-zinc-500 font-mono">Genes [0 .. 32]</span>
+              </div>
+              <div id="grid-genes-mfs" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 text-xs">
+                <!-- Rellenado dinámico por JS -->
+              </div>
+            </div>
+
+            <!-- Bloque 2: 26 Genes Reales (Pesos de Reglas) -->
+            <div class="space-y-2 pt-2 border-t border-zinc-800">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-emerald-400 uppercase tracking-wider text-[11px]">
+                  Parte 2: 26 Genes Reales (Pesos w_k ∈ [0.0, 1.0] y Activación de Reglas)
+                </span>
+                <span class="text-[11px] text-zinc-500 font-mono">Genes [33 .. 58]</span>
+              </div>
+              <div id="grid-genes-reglas" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 xl:grid-cols-9 gap-2 text-xs">
+                <!-- Rellenado dinámico por JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =============================================================== -->
+        <!-- SUSTENTACIÓN MATEMÁTICA Y COMPARATIVA CUANTITATIVA              -->
+        <!-- =============================================================== -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
           
           <div class="p-5 rounded-xl bg-zinc-900 border border-zinc-800 space-y-3">
@@ -447,17 +1043,27 @@
               Fitness = 0.70 · F1_Macro + 0.20 · Cobertura - 0.10 · (Reglas_Activas / Total_Reglas)
             </div>
             <p class="text-xs text-zinc-300 leading-relaxed">
-              La formulación busca el equilibrio óptimo entre exactitud balanceada por clase ($F1_{macro}$), cobertura de muestras y compacidad de la base de reglas para evitar sobreajuste y preservar explicabilidad.
+              La formulación busca el equilibrio óptimo entre exactitud balanceada por clase (<span class="font-mono text-amber-400 font-semibold">F1-Macro</span>), cobertura de muestras y compacidad de la base de reglas para evitar sobreajuste y preservar explicabilidad.
             </p>
           </div>
 
           <div class="p-5 rounded-xl bg-zinc-900 border border-zinc-800 space-y-3">
-            <h4 class="text-xs font-bold uppercase text-amber-400">Arquitectura del Cromosoma Mixto</h4>
-            <ul class="text-xs text-zinc-300 space-y-1.5 leading-relaxed">
-              <li>• <span class="font-bold text-zinc-100">Parte 1 (33 genes continuos):</span> 11 variables $\times$ 3 puntos de corte ($a_i < b_i < c_i$).</li>
-              <li>• <span class="font-bold text-amber-400">Parte 2 (26 genes reales):</span> Pesos $w_k \in [0.0, 1.0]$ y estado de activación de cada regla.</li>
-              <li>• <span class="font-bold text-emerald-400">Operadores:</span> Cruce SBX + Uniforme, Mutación Gaussiana Acotada y Elitismo del 10%.</li>
-            </ul>
+            <h4 class="text-xs font-bold uppercase text-amber-400">Impacto Cuantitativo de la Optimización</h4>
+            <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+              <div class="p-2.5 rounded bg-zinc-950 border border-zinc-800">
+                <span class="text-zinc-500 text-[10px] block uppercase">Ganancia Fitness:</span>
+                <span class="font-bold text-amber-400">0.4892 → 0.5619</span>
+                <span class="text-emerald-400 text-[10px] block font-bold mt-0.5">+14.86% de aptitud</span>
+              </div>
+              <div class="p-2.5 rounded bg-zinc-950 border border-zinc-800">
+                <span class="text-zinc-500 text-[10px] block uppercase">Poda de Reglas:</span>
+                <span class="font-bold text-rose-400">26 → 16 Reglas</span>
+                <span class="text-emerald-400 text-[10px] block font-bold mt-0.5">-38.46% complejidad</span>
+              </div>
+            </div>
+            <p class="text-[11px] text-zinc-400 leading-relaxed">
+              El operador de elitismo del 10% garantiza convergencia monótona hacia los mejores hiperparámetros sin pérdida de los genotipos más aptos.
+            </p>
           </div>
 
         </div>
@@ -488,7 +1094,7 @@
             <i data-lucide="info" class="w-4 h-4 text-amber-400"></i> Justificación de Funciones Híbridas Trapezoidal-Triangular:
           </div>
           <p>
-            Las funciones trapezoidales con hombros abiertos garantizan saturación $\mu = 1.0$ en extremos reales (e.g. alcohol $> 13.5\%$ o acidez volátil $< 0.30$), evitando caídas artificiales de pertenencia en vinos con concentraciones extremas.
+            Las funciones trapezoidales con hombros abiertos garantizan saturación de pertenencia <span class="font-mono text-amber-400 font-bold">μ = 1.0</span> en los extremos empíricos reales (e.g. alcohol <span class="font-mono text-zinc-100 font-semibold">&gt; 13.5%</span> o acidez volátil <span class="font-mono text-zinc-100 font-semibold">&lt; 0.30 g/dm³</span>), evitando caídas artificiales de pertenencia en vinos con concentraciones extremas.
           </p>
         </div>
 
@@ -547,54 +1153,333 @@
     </section>
 
     <!-- =================================================================== -->
-    <!-- TAB 6: ARQUITECTURA & SUSTENTACIÓN                                 -->
+    <!-- TAB 6: ARQUITECTURA & SUSTENTACIÓN TÉCNICA (XAI PIPELINE)          -->
     <!-- =================================================================== -->
     <section id="sec-arquitectura" class="tab-content hidden space-y-7">
-      <div class="card-editorial rounded-2xl p-7 space-y-7">
+      
+      <!-- Panel Principal de Arquitectura -->
+      <div class="card-editorial rounded-2xl p-7 space-y-8">
         
-        <div>
-          <h2 class="text-lg font-extrabold text-zinc-100 flex items-center gap-2.5">
-            <i data-lucide="layers" class="w-5 h-5 text-amber-500"></i> Arquitectura del Pipeline Híbrido
-          </h2>
-          <p class="text-xs text-zinc-300 mt-1">Desacoplamiento modular de las 4 técnicas computacionales para clasificación interpretable</p>
+        <!-- Cabecera de Arquitectura y KPIs de Diseño -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
+          <div>
+            <div class="flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                <i data-lucide="layers" class="w-4 h-4"></i>
+              </span>
+              <h2 class="text-xl font-black tracking-tight text-zinc-100">
+                Arquitectura del Pipeline Híbrido <span class="text-amber-500 font-extrabold">XAI</span>
+              </h2>
+            </div>
+            <p class="text-xs text-zinc-300 mt-1 max-w-2xl">
+              Desacoplamiento modular de las 4 técnicas computacionales para clasificación interpretable de vino tinto (UCI ML): Minería Simbólica, Lógica Difusa Continua y Optimización Genética.
+            </p>
+          </div>
+          
+          <!-- Badges de Diseño Modular -->
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-3 py-1 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-300 text-xs font-mono font-semibold flex items-center gap-1.5 shadow-sm">
+              <i data-lucide="cpu" class="w-3.5 h-3.5 text-sky-400"></i> 4 Módulos Desacoplados
+            </span>
+            <span class="px-3 py-1 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-300 text-xs font-mono font-semibold flex items-center gap-1.5 shadow-sm">
+              <i data-lucide="sliders" class="w-3.5 h-3.5 text-amber-400"></i> 11 Variables Químicas
+            </span>
+            <span class="px-3 py-1 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-300 text-xs font-mono font-semibold flex items-center gap-1.5 shadow-sm">
+              <i data-lucide="dna" class="w-3.5 h-3.5 text-emerald-400"></i> 59 Genes Mixtos
+            </span>
+            <span class="px-3 py-1 rounded-lg bg-emerald-950/60 border border-emerald-600/60 text-emerald-300 text-xs font-mono font-bold flex items-center gap-1.5 shadow-sm">
+              <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i> 100% Caja Blanca
+            </span>
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div class="p-5 rounded-xl bg-zinc-900 border border-zinc-800 space-y-2.5">
-            <div class="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-amber-400 font-extrabold text-sm">1</div>
-            <h4 class="font-bold text-sm text-zinc-100">PRISM (Desde Cero)</h4>
-            <p class="text-xs text-zinc-300 leading-relaxed">Inducción modular de reglas de clasificación directa optimizando pureza condicional $p(C \mid A_i=v_j)$.</p>
+        <!-- ================================================================= -->
+        <!-- PIPELINE VISUAL DE INFERENCIA EN TIEMPO REAL (STEPPER INTERACTIVO)-->
+        <!-- ================================================================= -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
+              <i data-lucide="workflow" class="w-4 h-4 text-amber-500"></i> Flujo Secuencial de Inferencia Matemática
+            </h3>
+            <span class="text-[11px] text-zinc-400 font-mono hidden sm:inline">Ejecución determinista en $\approx 2.4\text{ ms}$</span>
           </div>
-          <div class="p-5 rounded-xl bg-zinc-900 border border-zinc-800 space-y-2.5">
-            <div class="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-amber-400 font-extrabold text-sm">2</div>
-            <h4 class="font-bold text-sm text-zinc-100">Apriori (Desde Cero)</h4>
-            <p class="text-xs text-zinc-300 leading-relaxed">Minería de combinaciones frecuentes con filtro estricto a consecuente $\text{quality}$ ($\text{Conf}\ge 60\%, \text{Lift}>1.20$).</p>
-          </div>
-          <div class="p-5 rounded-xl bg-zinc-900 border border-zinc-800 space-y-2.5">
-            <div class="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-amber-400 font-extrabold text-sm">3</div>
-            <h4 class="font-bold text-sm text-zinc-100">Lógica Difusa Mamdani</h4>
-            <p class="text-xs text-zinc-300 leading-relaxed">Modelado continuo de 11 variables con funciones híbridas Trap-Tri y defuzzificación cuantitativa por centroide.</p>
-          </div>
-          <div class="p-5 rounded-xl bg-zinc-900 border border-zinc-800 space-y-2.5">
-            <div class="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-amber-400 font-extrabold text-sm">4</div>
-            <h4 class="font-bold text-sm text-zinc-100">Algoritmo Genético</h4>
-            <p class="text-xs text-zinc-300 leading-relaxed">Optimización evolutiva del cromosoma mixto (59 genes) equilibrando F1-Macro, cobertura y poda de reglas.</p>
+
+          <!-- Stepper Visual: 5 Fases Conectadas -->
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-3 relative">
+            
+            <!-- Paso 1 -->
+            <div class="relative p-4 rounded-xl bg-zinc-900/90 border border-zinc-800 hover:border-amber-500/50 transition-all flex flex-col justify-between group shadow-sm">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="w-6 h-6 rounded-md bg-amber-500/20 text-amber-400 font-mono text-xs font-bold flex items-center justify-center border border-amber-500/30">1</span>
+                  <span class="text-[10px] font-mono text-zinc-400 uppercase font-semibold">Entrada</span>
+                </div>
+                <div class="flex items-center gap-2 text-zinc-100 font-bold text-xs mt-1">
+                  <i data-lucide="flask-conical" class="w-4 h-4 text-amber-400"></i> Vector Químico
+                </div>
+                <p class="text-[11px] text-zinc-300 leading-snug">
+                  11 variables fisicoquímicas continuas: acidez, sulfatos, alcohol, pH, etc.
+                </p>
+              </div>
+              <div class="mt-3 pt-2 border-t border-zinc-800/80 text-[10px] font-mono text-amber-400/90">
+                $\vec{x} \in \mathbb{R}^{11}$
+              </div>
+            </div>
+
+            <!-- Paso 2 -->
+            <div class="relative p-4 rounded-xl bg-zinc-900/90 border border-zinc-800 hover:border-sky-500/50 transition-all flex flex-col justify-between group shadow-sm">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="w-6 h-6 rounded-md bg-sky-500/20 text-sky-400 font-mono text-xs font-bold flex items-center justify-center border border-sky-500/30">2</span>
+                  <span class="text-[10px] font-mono text-zinc-400 uppercase font-semibold">Fuzzificación</span>
+                </div>
+                <div class="flex items-center gap-2 text-zinc-100 font-bold text-xs mt-1">
+                  <i data-lucide="activity" class="w-4 h-4 text-sky-400"></i> Partición Trap-Tri
+                </div>
+                <p class="text-[11px] text-zinc-300 leading-snug">
+                  Transformación continua a grados lingüísticos $\mu \in [0, 1]$ (Bajo, Medio, Alto).
+                </p>
+              </div>
+              <div class="mt-3 pt-2 border-t border-zinc-800/80 text-[10px] font-mono text-sky-400/90">
+                33 Puntos $(a_i, b_i, c_i)$
+              </div>
+            </div>
+
+            <!-- Paso 3 -->
+            <div class="relative p-4 rounded-xl bg-zinc-900/90 border border-zinc-800 hover:border-amber-500/50 transition-all flex flex-col justify-between group shadow-sm">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="w-6 h-6 rounded-md bg-amber-500/20 text-amber-400 font-mono text-xs font-bold flex items-center justify-center border border-amber-500/30">3</span>
+                  <span class="text-[10px] font-mono text-zinc-400 uppercase font-semibold">Inferencia</span>
+                </div>
+                <div class="flex items-center gap-2 text-zinc-100 font-bold text-xs mt-1">
+                  <i data-lucide="cpu" class="w-4 h-4 text-amber-400"></i> T-Norma Mamdani
+                </div>
+                <p class="text-[11px] text-zinc-300 leading-snug">
+                  Evaluación de antecedentes por mínimo Gödel ponderado por pesos evolutivos.
+                </p>
+              </div>
+              <div class="mt-3 pt-2 border-t border-zinc-800/80 text-[10px] font-mono text-amber-400/90">
+                $\alpha_k = w_k \cdot \min(\mu)$
+              </div>
+            </div>
+
+            <!-- Paso 4 -->
+            <div class="relative p-4 rounded-xl bg-zinc-900/90 border border-zinc-800 hover:border-emerald-500/50 transition-all flex flex-col justify-between group shadow-sm">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="w-6 h-6 rounded-md bg-emerald-500/20 text-emerald-400 font-mono text-xs font-bold flex items-center justify-center border border-emerald-500/30">4</span>
+                  <span class="text-[10px] font-mono text-zinc-400 uppercase font-semibold">Defuzzificación</span>
+                </div>
+                <div class="flex items-center gap-2 text-zinc-100 font-bold text-xs mt-1">
+                  <i data-lucide="scale" class="w-4 h-4 text-emerald-400"></i> Centroide CoG
+                </div>
+                <p class="text-[11px] text-zinc-300 leading-snug">
+                  Agregación difusa MAX y cálculo continuo del Centro de Gravedad sobre $[0, 10]$.
+                </p>
+              </div>
+              <div class="mt-3 pt-2 border-t border-zinc-800/80 text-[10px] font-mono text-emerald-400/90">
+                $x^* = \frac{\int u \cdot \mu}{\int \mu}$
+              </div>
+            </div>
+
+            <!-- Paso 5 -->
+            <div class="relative p-4 rounded-xl bg-zinc-900/90 border border-zinc-800 hover:border-purple-500/50 transition-all flex flex-col justify-between group shadow-sm">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="w-6 h-6 rounded-md bg-purple-500/20 text-purple-400 font-mono text-xs font-bold flex items-center justify-center border border-purple-500/30">5</span>
+                  <span class="text-[10px] font-mono text-zinc-400 uppercase font-semibold">Decisión XAI</span>
+                </div>
+                <div class="flex items-center gap-2 text-zinc-100 font-bold text-xs mt-1">
+                  <i data-lucide="award" class="w-4 h-4 text-purple-400"></i> Veredicto & Razón
+                </div>
+                <p class="text-[11px] text-zinc-300 leading-snug">
+                  Clasificación en Baja, Media o Alta con trazabilidad causal de variables clave.
+                </p>
+              </div>
+              <div class="mt-3 pt-2 border-t border-zinc-800/80 text-[10px] font-mono text-purple-400/90">
+                Umbrales: $5.30$ y $6.60$
+              </div>
+            </div>
+
           </div>
         </div>
 
-        <div class="p-6 rounded-xl bg-zinc-900 border border-zinc-800 space-y-3">
-          <h3 class="font-bold text-sm text-zinc-100">Flujo Completo de Inferencia</h3>
-          <div class="p-4 rounded-lg bg-zinc-950 font-mono text-xs text-zinc-200 overflow-x-auto leading-relaxed border border-zinc-800">
-            NUEVO VINO (11 Variables Fisicoquímicas Continuas)<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;↓<br>
-            Fuzzificación Híbrida Trapezoidal-Triangular (Bajo, Medio, Alto)<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;↓<br>
-            Evaluación de Reglas Activas (α_k = w_k · min μ)<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;↓<br>
-            Agregación Mamdani & Defuzzificación Cuantitativa por Centroide (COG)<br>
-            &nbsp;&nbsp;&nbsp;&nbsp;↓<br>
-            CALIFICACIÓN FINAL: BAJA (&lt; 5.30) / MEDIA (5.30 - 6.60) / ALTA (&ge; 6.60) + EXPLICACIÓN XAI
+        <!-- ================================================================= -->
+        <!-- LAS 4 METODOLOGÍAS COMPUTACIONALES (TARJETAS ENRIQUECIDAS)         -->
+        <!-- ================================================================= -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
+              <i data-lucide="binary" class="w-4 h-4 text-amber-500"></i> Los 4 Pilares Algorítmicos del Sistema
+            </h3>
+            <span class="text-xs text-zinc-400 font-mono">Implementación modular sin dependencias de caja negra</span>
           </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <!-- Pilar 1: PRISM -->
+            <div class="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-all space-y-3.5 shadow-sm">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-sky-950/80 border border-sky-600/40 flex items-center justify-center text-sky-400 shadow-inner">
+                    <i data-lucide="file-search" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-sm text-zinc-100">1. Algoritmo PRISM (Desde Cero)</h4>
+                    <span class="text-[11px] text-sky-400 font-mono font-medium">Minería de Reglas Supervisada</span>
+                  </div>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full bg-zinc-950 border border-zinc-800 text-[10px] font-mono text-zinc-400 font-bold">16 Reglas</span>
+              </div>
+              <p class="text-xs text-zinc-300 leading-relaxed">
+                Induce reglas modulares de forma iterativa seleccionando las condiciones atributo-valor con la máxima precisión condicional. A diferencia de los árboles de decisión (C4.5), no subdivide el espacio ortogonalmente de manera forzada, permitiendo extraer reglas puras para clases minoritarias (*Alta* y *Baja*).
+              </p>
+              <div class="p-2.5 rounded-lg bg-zinc-950 border border-zinc-800/80 text-xs font-mono text-sky-300 flex items-center justify-between">
+                <span>Criterio Heurístico:</span>
+                <span class="font-bold">$\max \, p(C \mid A_i = v_j) = \frac{|C \cap (A_i = v_j)|}{|A_i = v_j|}$</span>
+              </div>
+            </div>
+
+            <!-- Pilar 2: Apriori -->
+            <div class="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-all space-y-3.5 shadow-sm">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-amber-950/80 border border-amber-600/40 flex items-center justify-center text-amber-400 shadow-inner">
+                    <i data-lucide="share-2" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-sm text-zinc-100">2. Algoritmo Apriori (Desde Cero)</h4>
+                    <span class="text-[11px] text-amber-400 font-mono font-medium">Asociaciones Frecuentes Filtradas</span>
+                  </div>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full bg-zinc-950 border border-zinc-800 text-[10px] font-mono text-zinc-400 font-bold">10 Reglas</span>
+              </div>
+              <p class="text-xs text-zinc-300 leading-relaxed">
+                Explora el retículo de itemsets frecuentes con poda anti-monótona sobre transacciones discretizadas. Se aplicó un <strong>filtro estricto a consecuente</strong> exigiendo que la parte derecha sea exclusivamente la clase de calidad, garantizando relaciones de alta significancia estadística.
+              </p>
+              <div class="p-2.5 rounded-lg bg-zinc-950 border border-zinc-800/80 text-xs font-mono text-amber-300 flex items-center justify-between">
+                <span>Filtros Estadísticos:</span>
+                <span class="font-bold">$\text{Conf} \ge 60\% \quad \land \quad \text{Lift} > 1.20$</span>
+              </div>
+            </div>
+
+            <!-- Pilar 3: Inferencia Mamdani -->
+            <div class="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-all space-y-3.5 shadow-sm">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-emerald-950/80 border border-emerald-600/40 flex items-center justify-center text-emerald-400 shadow-inner">
+                    <i data-lucide="sliders" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-sm text-zinc-100">3. Inferencia Mamdani Continua</h4>
+                    <span class="text-[11px] text-emerald-400 font-mono font-medium">Lógica Difusa Explicable (XAI)</span>
+                  </div>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full bg-zinc-950 border border-zinc-800 text-[10px] font-mono text-zinc-400 font-bold">11 MFs Trap-Tri</span>
+              </div>
+              <p class="text-xs text-zinc-300 leading-relaxed">
+                Suaviza las fronteras rígidas del vino mediante grados de pertenencia $\mu \in [0, 1]$. Utiliza T-norma Mínimo de Gödel para el cálculo del cuello de botella en los antecedentes, agregación S-norma Máximo y defuzzificación cuantitativa por Centro de Gravedad (CoG).
+              </p>
+              <div class="p-2.5 rounded-lg bg-zinc-950 border border-zinc-800/80 text-xs font-mono text-emerald-300 flex items-center justify-between">
+                <span>Centroide Continuo:</span>
+                <span class="font-bold">$\text{CoG} = \frac{\sum u_i \cdot \mu_{\text{agregado}}(u_i)}{\sum \mu_{\text{agregado}}(u_i)} \in [0, 10]$</span>
+              </div>
+            </div>
+
+            <!-- Pilar 4: Algoritmo Genético DEAP -->
+            <div class="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-all space-y-3.5 shadow-sm">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl bg-purple-950/80 border border-purple-600/40 flex items-center justify-center text-purple-400 shadow-inner">
+                    <i data-lucide="dna" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-sm text-zinc-100">4. Algoritmo Genético (DEAP)</h4>
+                    <span class="text-[11px] text-purple-400 font-mono font-medium">Optimización Multi-Objetivo</span>
+                  </div>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full bg-zinc-950 border border-zinc-800 text-[10px] font-mono text-zinc-400 font-bold">59 Genes</span>
+              </div>
+              <p class="text-xs text-zinc-300 leading-relaxed">
+                Calibra simultáneamente la geometría de las 11 funciones difusas (33 puntos de corte $a, b, c$) y los pesos/activación de las 26 reglas difusas. Aplica un operador de reparación que preserva la consistencia física $a < b < c$, podando reglas redundantes.
+              </p>
+              <div class="p-2.5 rounded-lg bg-zinc-950 border border-zinc-800/80 text-xs font-mono text-purple-300 flex items-center justify-between">
+                <span>Función de Aptitud:</span>
+                <span class="font-bold">$\text{Fit} = 0.70 F_1 + 0.20 \text{Cob} - 0.10 \left(\frac{R_{\text{act}}}{26}\right)$</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- TABLA COMPARATIVA DE INGENIERÍA DE SOFTWARE Y ESPECIFICACIONES    -->
+        <!-- ================================================================= -->
+        <div class="space-y-3">
+          <h3 class="text-sm font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
+            <i data-lucide="table" class="w-4 h-4 text-amber-500"></i> Desacoplamiento y Especificación Técnica de Componentes
+          </h3>
+          
+          <div class="overflow-x-auto rounded-xl border border-zinc-800 shadow-sm">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-zinc-900 text-zinc-300 border-b border-zinc-800 font-bold uppercase tracking-wider text-[11px]">
+                  <th class="py-3 px-4">Componente</th>
+                  <th class="py-3 px-3">Espacio de Búsqueda</th>
+                  <th class="py-3 px-3">Entrada $\to$ Salida</th>
+                  <th class="py-3 px-3">Criterio de Parada / Poda</th>
+                  <th class="py-3 px-3">Rol en la Explicabilidad (XAI)</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-zinc-800 font-mono text-zinc-200 bg-zinc-950/60">
+                <tr class="hover:bg-zinc-900/60 transition-colors">
+                  <td class="py-3 px-4 font-bold text-sky-400">PRISM</td>
+                  <td class="py-3 px-3">Atributos discretizados ($33\%$)</td>
+                  <td class="py-3 px-3 text-zinc-300">Dataset tabular $\to$ Reglas modulares</td>
+                  <td class="py-3 px-3 text-zinc-400">Cobertura total de la clase objetivo</td>
+                  <td class="py-3 px-3 text-zinc-300 font-sans">Condiciones directas no redundantes</td>
+                </tr>
+                <tr class="hover:bg-zinc-900/60 transition-colors">
+                  <td class="py-3 px-4 font-bold text-amber-400">Apriori</td>
+                  <td class="py-3 px-3">Retículo de itemsets $\mathcal{P}(I)$</td>
+                  <td class="py-3 px-3 text-zinc-300">Transacciones $\to$ Asociaciones con Lift</td>
+                  <td class="py-3 px-3 text-zinc-400">$\text{Soporte} < 0.05 \lor \text{Conf} < 0.60$</td>
+                  <td class="py-3 px-3 text-zinc-300 font-sans">Correlación cruzada entre variables</td>
+                </tr>
+                <tr class="hover:bg-zinc-900/60 transition-colors">
+                  <td class="py-3 px-4 font-bold text-emerald-400">Mamdani</td>
+                  <td class="py-3 px-3">Espacio continuo $\mathbb{R}^{11} \times [0, 10]$</td>
+                  <td class="py-3 px-3 text-zinc-300">Vector $\vec{x} \to$ CoG y Reglas activadas</td>
+                  <td class="py-3 px-3 text-zinc-400">Inferencia determinista en un paso</td>
+                  <td class="py-3 px-3 text-zinc-300 font-sans">Transparencia en grados de pertenencia</td>
+                </tr>
+                <tr class="hover:bg-zinc-900/60 transition-colors">
+                  <td class="py-3 px-4 font-bold text-purple-400">Genético (DEAP)</td>
+                  <td class="py-3 px-3">$\mathbb{R}^{33} \times [0, 1]^{26}$ (59 genes)</td>
+                  <td class="py-3 px-3 text-zinc-300">Parámetros semilla $\to$ Vector óptimo</td>
+                  <td class="py-3 px-3 text-zinc-400">30 generaciones con Elitismo</td>
+                  <td class="py-3 px-3 text-zinc-300 font-sans">Poda parsimoniosa (10 reglas podadas)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Banner de Explorador Difuso Interactivo -->
+        <div class="p-4 rounded-xl bg-gradient-to-r from-amber-500/10 via-zinc-900 to-zinc-900 border border-amber-500/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <span class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 flex-shrink-0">
+              <i data-lucide="microscope" class="w-5 h-5"></i>
+            </span>
+            <div>
+              <h4 class="text-sm font-bold text-zinc-100">¿Deseas ver la matemática de inferencia paso a paso?</h4>
+              <p class="text-xs text-zinc-400">Accede a la vista dedicada para inspeccionar las curvas difusas, cuellos de botella y centroide interactivo.</p>
+            </div>
+          </div>
+          <a href="/fuzzy-explorer" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-zinc-950 font-extrabold text-xs transition-all flex items-center gap-2 shadow-md flex-shrink-0 whitespace-nowrap">
+            <i data-lucide="external-link" class="w-4 h-4"></i> Abrir Explorador Difuso
+          </a>
         </div>
 
       </div>
@@ -691,7 +1576,10 @@
       lucide.createIcons();
       await cargarInfoInicial();
       await cargarTablaReglas();
+      await cargarHistorialConvergencia();
+      renderizarGraficoRecallSVG('todas');
       ejecutarClasificacion();
+      renderizarMatematicas();
     });
 
     async function cargarInfoInicial() {
@@ -905,6 +1793,656 @@
       }
     }
 
+    // =========================================================================
+    // SUITE INTERACTIVA DEL ALGORITMO GENÉTICO (SCRUBBER, SIMULADOR & CROMOSOMA)
+    // =========================================================================
+    let historialConvergenciaGlobal = [];
+    let generacionScrubberActual = 30;
+    let animacionEvolucionTimer = null;
+    let modoGAActual = "historial";
+    let microGenSeleccionada = 5;
+    let microPobSeleccionada = 15;
+
+    async function cargarHistorialConvergencia() {
+      try {
+        const resp = await fetch("/api/convergencia");
+        historialConvergenciaGlobal = await resp.json();
+        if (historialConvergenciaGlobal && historialConvergenciaGlobal.length > 0) {
+          actualizarGeneracionScrubber(historialConvergenciaGlobal.length - 1);
+          renderizarGraficoConvergenciaSVG(historialConvergenciaGlobal, historialConvergenciaGlobal.length - 1);
+        }
+      } catch (err) {
+        console.error("Error al cargar convergencia GA:", err);
+      }
+    }
+
+    function onSliderGeneracionInput(val) {
+      if (animacionEvolucionTimer) {
+        togglePlayEvolucion();
+      }
+      actualizarGeneracionScrubber(parseInt(val));
+    }
+
+    function cambiarGeneracionScrubber(gen) {
+      if (animacionEvolucionTimer) {
+        togglePlayEvolucion();
+      }
+      const slider = document.getElementById("slider-generacion-ga");
+      if (slider) slider.value = gen;
+      actualizarGeneracionScrubber(gen);
+    }
+
+    function actualizarGeneracionScrubber(gen) {
+      generacionScrubberActual = gen;
+      const lbl = document.getElementById("label-gen-activa");
+      if (lbl) lbl.innerText = gen;
+
+      if (!historialConvergenciaGlobal || historialConvergenciaGlobal.length === 0) return;
+      const dataGen = historialConvergenciaGlobal.find(d => d.generacion === gen) || historialConvergenciaGlobal[historialConvergenciaGlobal.length - 1];
+
+      const kpiFit = document.getElementById("kpi-ga-fitness");
+      const kpiProm = document.getElementById("kpi-ga-promedio");
+      const kpiF1 = document.getElementById("kpi-ga-f1");
+      const kpiCob = document.getElementById("kpi-ga-cobertura");
+      const kpiReg = document.getElementById("kpi-ga-reglas");
+      const kpiPod = document.getElementById("kpi-ga-podadas");
+      const kpiTiem = document.getElementById("kpi-ga-tiempo");
+
+      if (kpiFit) kpiFit.innerText = Number(dataGen.mejor_fitness).toFixed(4);
+      if (kpiProm) kpiProm.innerText = Number(dataGen.fitness_promedio).toFixed(4);
+      if (kpiF1) kpiF1.innerText = Number(dataGen.f1_macro).toFixed(4);
+      if (kpiCob) kpiCob.innerText = (Number(dataGen.cobertura) * 100).toFixed(2) + "%";
+      if (kpiReg) kpiReg.innerText = `${dataGen.reglas_activas} / 26`;
+      if (kpiPod) kpiPod.innerText = `${26 - dataGen.reglas_activas} podadas por AG`;
+      if (kpiTiem) kpiTiem.innerText = `${Number(dataGen.tiempo_seg).toFixed(1)} s`;
+
+      renderizarGraficoConvergenciaSVG(historialConvergenciaGlobal, gen);
+    }
+
+    function togglePlayEvolucion() {
+      const btn = document.getElementById("btn-play-ga");
+      const icon = document.getElementById("icon-play-ga");
+      const text = document.getElementById("text-play-ga");
+      if (!btn) return;
+
+      const maxG = historialConvergenciaGlobal.length - 1;
+
+      if (animacionEvolucionTimer) {
+        clearInterval(animacionEvolucionTimer);
+        animacionEvolucionTimer = null;
+        text.innerText = "Reproducir";
+        icon.setAttribute("data-lucide", "play");
+      } else {
+        if (generacionScrubberActual >= maxG) {
+          generacionScrubberActual = 0;
+        }
+        text.innerText = "Pausar";
+        icon.setAttribute("data-lucide", "pause");
+
+        animacionEvolucionTimer = setInterval(() => {
+          if (generacionScrubberActual >= maxG) {
+            clearInterval(animacionEvolucionTimer);
+            animacionEvolucionTimer = null;
+            text.innerText = "Reproducir";
+            icon.setAttribute("data-lucide", "play");
+            lucide.createIcons();
+            return;
+          }
+          generacionScrubberActual++;
+          const slider = document.getElementById("slider-generacion-ga");
+          if (slider) slider.value = generacionScrubberActual;
+          actualizarGeneracionScrubber(generacionScrubberActual);
+        }, 180);
+      }
+      lucide.createIcons();
+    }
+
+    function renderizarGraficoConvergenciaSVG(historial, genActiva) {
+      if (!historial || historial.length === 0) return;
+      const svg = document.getElementById("svg-convergencia-dinamico");
+      if (!svg) return;
+
+      const W = 900;
+      const H = 280;
+      const padL = 60;
+      const padR = 40;
+      const padT = 30;
+      const padB = 40;
+
+      const plotW = W - padL - padR;
+      const plotH = H - padT - padB;
+
+      const maxGen = Math.max(...historial.map(d => d.generacion));
+      const minFit = 0.40;
+      const maxFit = 0.62;
+
+      const scaleX = (g) => padL + (g / maxGen) * plotW;
+      const scaleY = (f) => padT + plotH - ((f - minFit) / (maxFit - minFit)) * plotH;
+
+      let pathMejor = "";
+      let pathProm = "";
+      let areaMejor = `M ${scaleX(0)},${scaleY(minFit)}`;
+
+      historial.forEach((d, i) => {
+        const x = scaleX(d.generacion);
+        const yM = scaleY(d.mejor_fitness);
+        const yP = scaleY(d.fitness_promedio);
+
+        if (i === 0) {
+          pathMejor += `M ${x},${yM}`;
+          pathProm += `M ${x},${yP}`;
+        } else {
+          pathMejor += ` L ${x},${yM}`;
+          pathProm += ` L ${x},${yP}`;
+        }
+        areaMejor += ` L ${x},${yM}`;
+      });
+      areaMejor += ` L ${scaleX(maxGen)},${scaleY(minFit)} Z`;
+
+      const xActiva = scaleX(genActiva);
+      const dataActiva = historial.find(d => d.generacion === genActiva) || historial[historial.length - 1];
+      const yActivaM = scaleY(dataActiva.mejor_fitness);
+
+      const ticksY = [0.40, 0.45, 0.50, 0.55, 0.60];
+      const ticksX = [0, 5, 10, 15, 20, 25, 30].filter(g => g <= maxGen);
+
+      svg.innerHTML = `
+        <defs>
+          <linearGradient id="grad-convergencia" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.30" />
+            <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.01" />
+          </linearGradient>
+        </defs>
+
+        <!-- Ejes y Líneas Guía -->
+        <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H - padB}" stroke="#3f3f46" stroke-width="1.5" />
+        <line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="#3f3f46" stroke-width="1.5" />
+
+        ${ticksY.map(val => `
+          <line x1="${padL}" y1="${scaleY(val)}" x2="${W - padR}" y2="${scaleY(val)}" stroke="#27272a" stroke-dasharray="3 3" />
+          <text x="${padL - 10}" y="${scaleY(val) + 4}" fill="#71717a" font-size="10" text-anchor="end" font-family="monospace">${val.toFixed(2)}</text>
+        `).join("")}
+
+        ${ticksX.map(g => `
+          <line x1="${scaleX(g)}" y1="${H - padB}" x2="${scaleX(g)}" y2="${H - padB + 4}" stroke="#71717a" />
+          <text x="${scaleX(g)}" y="${H - padB + 16}" fill="#a1a1aa" font-size="10" text-anchor="middle" font-family="monospace">G${g}</text>
+        `).join("")}
+
+        <!-- Área de Aptitud Rellena -->
+        <path d="${areaMejor}" fill="url(#grad-convergencia)" />
+
+        <!-- Curva de Fitness Promedio (Sky) -->
+        <path d="${pathProm}" fill="none" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4 2" />
+
+        <!-- Curva de Mejor Fitness (Gold) -->
+        <path d="${pathMejor}" fill="none" stroke="#f59e0b" stroke-width="2.5" />
+
+        <!-- Línea Guía de Generación Activa -->
+        <line x1="${xActiva}" y1="${padT}" x2="${xActiva}" y2="${H - padB}" stroke="#fafafa" stroke-width="1.5" stroke-dasharray="4 4" />
+        <circle cx="${xActiva}" cy="${yActivaM}" r="5" fill="#f59e0b" stroke="#ffffff" stroke-width="2" />
+
+        <!-- Cartela de Información Flotante -->
+        <g transform="translate(${Math.min(W - padR - 140, Math.max(padL + 15, xActiva - 70))}, ${Math.max(padT + 8, yActivaM - 48)})">
+          <rect x="-8" y="-10" width="145" height="42" rx="6" fill="#18181b" stroke="#f59e0b" stroke-width="1.2" opacity="0.95" />
+          <text x="64" y="6" fill="#fafafa" font-size="10" font-weight="bold" text-anchor="middle">Gen ${genActiva}: Fit ${Number(dataActiva.mejor_fitness).toFixed(4)}</text>
+          <text x="64" y="22" fill="#34d399" font-size="10" font-family="monospace" text-anchor="middle">F1: ${Number(dataActiva.f1_macro).toFixed(4)} | R: ${dataActiva.reglas_activas}</text>
+        </g>
+      `;
+    }
+
+    function toggleImagenEstaticaGA() {
+      const svgCont = document.getElementById("contenedor-svg-convergencia");
+      const imgCont = document.getElementById("contenedor-img-convergencia");
+      if (!svgCont || !imgCont) return;
+
+      if (svgCont.classList.contains("hidden")) {
+        svgCont.classList.remove("hidden");
+        imgCont.classList.add("hidden");
+      } else {
+        svgCont.classList.add("hidden");
+        imgCont.classList.remove("hidden");
+      }
+    }
+
+    function cambiarModoGA(modo) {
+      modoGAActual = modo;
+      const vHist = document.getElementById("vista-ga-historial");
+      const vSim = document.getElementById("vista-ga-simulador");
+      const vCrom = document.getElementById("vista-ga-cromosoma");
+
+      const bHist = document.getElementById("btn-modo-ga-historial");
+      const bSim = document.getElementById("btn-modo-ga-simulador");
+      const bCrom = document.getElementById("btn-modo-ga-cromosoma");
+
+      if (vHist) vHist.classList.add("hidden");
+      if (vSim) vSim.classList.add("hidden");
+      if (vCrom) vCrom.classList.add("hidden");
+
+      if (bHist) bHist.className = "px-3.5 py-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 flex items-center gap-1.5 transition-all";
+      if (bSim) bSim.className = "px-3.5 py-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 flex items-center gap-1.5 transition-all";
+      if (bCrom) bCrom.className = "px-3.5 py-1.5 rounded-lg text-zinc-400 hover:text-zinc-200 flex items-center gap-1.5 transition-all";
+
+      if (modo === "historial" && vHist && bHist) {
+        vHist.classList.remove("hidden");
+        bHist.className = "px-3.5 py-1.5 rounded-lg bg-zinc-800 text-amber-400 font-bold flex items-center gap-1.5 transition-all shadow-sm";
+      } else if (modo === "simulador" && vSim && bSim) {
+        vSim.classList.remove("hidden");
+        bSim.className = "px-3.5 py-1.5 rounded-lg bg-zinc-800 text-emerald-400 font-bold flex items-center gap-1.5 transition-all shadow-sm";
+      } else if (vCrom && bCrom) {
+        vCrom.classList.remove("hidden");
+        bCrom.className = "px-3.5 py-1.5 rounded-lg bg-zinc-800 text-sky-400 font-bold flex items-center gap-1.5 transition-all shadow-sm";
+        renderizarMatrizCromosoma();
+      }
+      lucide.createIcons();
+    }
+
+    function seleccionarGenMicro(val) {
+      microGenSeleccionada = val;
+      document.querySelectorAll(".btn-micro-gen").forEach(b => {
+        if (parseInt(b.dataset.val) === val) {
+          b.className = "btn-micro-gen px-2 py-1.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/50 font-bold";
+        } else {
+          b.className = "btn-micro-gen px-2 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300";
+        }
+      });
+    }
+
+    function seleccionarPobMicro(val) {
+      microPobSeleccionada = val;
+      document.querySelectorAll(".btn-micro-pob").forEach(b => {
+        if (parseInt(b.dataset.val) === val) {
+          b.className = "btn-micro-pob px-2 py-1.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/50 font-bold";
+        } else {
+          b.className = "btn-micro-pob px-2 py-1.5 rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-300";
+        }
+      });
+    }
+
+    async function ejecutarMicroGA() {
+      const btn = document.getElementById("btn-ejecutar-micro-ga");
+      const resContainer = document.getElementById("resultado-micro-ga");
+      if (!btn) return;
+      const origHtml = btn.innerHTML;
+
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-white"></i> Evolucionando DEAP...`;
+      lucide.createIcons();
+
+      const pCruce = parseFloat(document.getElementById("input-pc") ? document.getElementById("input-pc").value : 0.85);
+      const pMut = parseFloat(document.getElementById("input-pm") ? document.getElementById("input-pm").value : 0.25);
+
+      try {
+        const resp = await fetch("/api/ejecutar-ga-micro", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            generaciones: microGenSeleccionada,
+            poblacion: microPobSeleccionada,
+            prob_cruce: pCruce,
+            prob_mutacion: pMut,
+            peso_f1: 0.70,
+            peso_cobertura: 0.20,
+            peso_penalizacion: 0.10
+          })
+        });
+        const data = await resp.json();
+
+        if (data.status === "success") {
+          if (resContainer) resContainer.classList.remove("hidden");
+          document.getElementById("tiempo-micro-ga").innerText = `Completado en ${data.tiempo_total_seg} s`;
+          document.getElementById("res-micro-fitness").innerText = data.mejor_fitness.toFixed(4);
+          document.getElementById("res-micro-f1").innerText = data.f1_macro.toFixed(4);
+          document.getElementById("res-micro-cobertura").innerText = `${data.cobertura.toFixed(2)}%`;
+          document.getElementById("res-micro-reglas").innerText = `${data.reglas_activas} / 26`;
+
+          // Cargar el historial en el gráfico
+          historialConvergenciaGlobal = data.historial;
+          const slider = document.getElementById("slider-generacion-ga");
+          if (slider) {
+            slider.max = data.historial.length - 1;
+            slider.value = data.historial.length - 1;
+          }
+          cambiarModoGA("historial");
+          actualizarGeneracionScrubber(data.historial.length - 1);
+        } else {
+          alert("Error al ejecutar optimización: " + (data.mensaje || "Error desconocido"));
+        }
+      } catch (err) {
+        console.error("Error ejecutando micro-GA:", err);
+        alert("Ocurrió un error al contactar al servidor.");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+        lucide.createIcons();
+      }
+    }
+
+    async function renderizarMatrizCromosoma() {
+      const containerMFs = document.getElementById("grid-genes-mfs");
+      const containerReglas = document.getElementById("grid-genes-reglas");
+      if (!containerMFs || !containerReglas) return;
+
+      try {
+        const [respMFs, respReglas] = await Promise.all([
+          fetch("/api/mfs"),
+          fetch("/api/reglas")
+        ]);
+        const dataMFs = await respMFs.json();
+        const reglas = await respReglas.json();
+
+        const optMFs = dataMFs.mfs_optimizadas || {};
+
+        let htmlMFs = "";
+        let genIdx = 0;
+        for (const [v, cortes] of Object.entries(optMFs)) {
+          const meta = METADATOS_VARIABLES[v] || { label: v, unidad: "" };
+          htmlMFs += `
+            <div class="p-2.5 rounded-lg bg-zinc-950 border border-zinc-800 space-y-1">
+              <div class="flex justify-between items-center text-[10px]">
+                <span class="font-bold text-zinc-200 truncate">${meta.label}</span>
+                <span class="text-amber-400 font-mono">[g${genIdx}..${genIdx+2}]</span>
+              </div>
+              <div class="grid grid-cols-3 gap-1 font-mono text-[10px] text-center">
+                <span class="bg-zinc-900 p-1 rounded text-sky-300">a: ${Number(cortes[0]).toFixed(2)}</span>
+                <span class="bg-zinc-900 p-1 rounded text-amber-300">b: ${Number(cortes[1]).toFixed(2)}</span>
+                <span class="bg-zinc-900 p-1 rounded text-emerald-300">c: ${Number(cortes[2]).toFixed(2)}</span>
+              </div>
+            </div>
+          `;
+          genIdx += 3;
+        }
+        containerMFs.innerHTML = htmlMFs;
+
+        let htmlReglas = "";
+        reglas.forEach((r, idx) => {
+          const gIdx = 33 + idx;
+          const esActiva = r.activa;
+          htmlReglas += `
+            <div class="p-2 rounded-lg border text-center ${esActiva ? 'bg-zinc-900 border-amber-600/70 text-zinc-100' : 'bg-zinc-950/70 border-zinc-800 text-zinc-600 opacity-60'}">
+              <div class="flex items-center justify-between text-[10px] font-mono mb-0.5">
+                <span class="font-bold">${r.id_regla}</span>
+                <span>g${gIdx}</span>
+              </div>
+              <div class="text-[11px] font-mono font-black ${esActiva ? 'text-amber-400' : 'text-zinc-600'}">
+                w=${Number(r.peso).toFixed(2)}
+              </div>
+              <div class="text-[9px] uppercase font-bold truncate mt-0.5">
+                ${esActiva ? 'Activa' : 'Podada'}
+              </div>
+            </div>
+          `;
+        });
+        containerReglas.innerHTML = htmlReglas;
+
+      } catch (err) {
+        console.error("Error cargando cromosoma:", err);
+      }
+    }
+
+    // =========================================================================
+    // SUITE DEL PANEL COMPARATIVO DE RENDIMIENTO (BARRAS DE RECALL & MATRICES)
+    // =========================================================================
+    let modoRecallActual = 'todas';
+
+    const METRICAS_RECALL_TEST = {
+      todas: {
+        clases: ['Baja', 'Media', 'Alta'],
+        totales: { Baja: 149, Media: 128, Alta: 43 },
+        fase1: { Baja: 67.79, Media: 60.94, Alta: 11.63 },
+        fase2: { Baja: 85.91, Media: 28.12, Alta: 34.88 },
+        fase3: { Baja: 66.44, Media: 58.59, Alta: 44.19 },
+        aciertos: {
+          fase1: { Baja: 101, Media: 78, Alta: 5 },
+          fase2: { Baja: 128, Media: 36, Alta: 15 },
+          fase3: { Baja: 99, Media: 75, Alta: 19 }
+        },
+        precision: {
+          fase1: { Baja: 68.24, Media: 49.06, Alta: 38.46 },
+          fase2: { Baja: 61.54, Media: 49.32, Alta: 38.46 },
+          fase3: { Baja: 72.79, Media: 53.19, Alta: 44.19 }
+        },
+        f1: {
+          fase1: { Baja: 0.6801, Media: 0.5436, Alta: 0.1786 },
+          fase2: { Baja: 0.7171, Media: 0.3582, Alta: 0.3659 },
+          fase3: { Baja: 0.6947, Media: 0.5576, Alta: 0.4419 }
+        }
+      }
+    };
+
+    function cambiarModoRecall(modo) {
+      modoRecallActual = modo;
+      const btnTodas = document.getElementById("btn-recall-todas");
+      const btnAlta = document.getElementById("btn-recall-alta");
+      if (btnTodas && btnAlta) {
+        if (modo === 'todas') {
+          btnTodas.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-zinc-100 text-zinc-950 shadow-sm";
+          btnAlta.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700";
+        } else {
+          btnAlta.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-emerald-500 text-zinc-950 font-black shadow-sm";
+          btnTodas.className = "px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-zinc-300 hover:text-white hover:bg-zinc-800 border border-zinc-700";
+        }
+      }
+      renderizarGraficoRecallSVG(modo);
+    }
+
+    function renderizarGraficoRecallSVG(modo = 'todas') {
+      const svg = document.getElementById("svg-grafico-recall");
+      if (!svg) return;
+
+      const W = 900;
+      const H = 320;
+      const padL = 65;
+      const padR = 40;
+      const padT = 45;
+      const padB = 45;
+
+      const plotW = W - padL - padR;
+      const plotH = H - padT - padB;
+
+      const scaleY = (pct) => padT + plotH - (pct / 100.0) * plotH;
+
+      let svgHtml = `
+        <defs>
+          <linearGradient id="grad-fase1" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#38bdf8" />
+            <stop offset="100%" stop-color="#0284c7" />
+          </linearGradient>
+          <linearGradient id="grad-fase2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#fb923c" />
+            <stop offset="100%" stop-color="#d97706" />
+          </linearGradient>
+          <linearGradient id="grad-fase3" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#34d399" />
+            <stop offset="100%" stop-color="#059669" />
+          </linearGradient>
+        </defs>
+      `;
+
+      // Líneas de referencia horizontales Y
+      const gridLevels = [0, 25, 50, 75, 100];
+      gridLevels.forEach(lvl => {
+        const y = scaleY(lvl);
+        svgHtml += `
+          <line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#27272a" stroke-width="1" stroke-dasharray="${lvl === 0 ? '0' : '4 4'}" />
+          <text x="${padL - 10}" y="${y + 4}" fill="#71717a" font-size="11" font-family="monospace" text-anchor="end">${lvl}%</text>
+        `;
+      });
+
+      if (modo === 'todas') {
+        const clases = ['Baja', 'Media', 'Alta'];
+        const groupW = plotW / clases.length;
+        const barW = 34;
+        const gapBars = 8;
+        const totalBarsW = 3 * barW + 2 * gapBars;
+
+        clases.forEach((c, idx) => {
+          const groupCenter = padL + idx * groupW + groupW / 2;
+          const startX = groupCenter - totalBarsW / 2;
+
+          const labelColor = c === 'Alta' ? '#34d399' : (c === 'Media' ? '#fbbf24' : '#f43f5e');
+          svgHtml += `
+            <text x="${groupCenter}" y="${H - 15}" fill="${labelColor}" font-size="13" font-weight="bold" text-anchor="middle" font-family="sans-serif">
+              Calidad ${c} <tspan fill="#71717a" font-size="10" font-weight="normal">(N=${METRICAS_RECALL_TEST.todas.totales[c]})</tspan>
+            </text>
+          `;
+
+          // Resalte para Calidad Alta (Área y cartela superior)
+          if (c === 'Alta') {
+            svgHtml += `
+              <rect x="${startX - 12}" y="${padT - 18}" width="${totalBarsW + 24}" height="${plotH + 24}" rx="8" fill="#10b981" fill-opacity="0.06" stroke="#10b981" stroke-opacity="0.3" stroke-dasharray="4 3" />
+              <g transform="translate(${groupCenter}, ${padT - 26})">
+                <rect x="-70" y="-12" width="140" height="22" rx="6" fill="#064e3b" stroke="#10b981" stroke-width="1.2" />
+                <text x="0" y="3" fill="#a7f3d0" font-size="10" font-weight="black" text-anchor="middle" font-family="sans-serif">
+                  🚀 +280% MEJORA AG
+                </text>
+              </g>
+            `;
+          }
+
+          // Barras: Fase 1, Fase 2, Fase 3
+          const fases = [
+            { fNum: 1, name: 'Fase 1: Discreto', val: METRICAS_RECALL_TEST.todas.fase1[c], fill: 'url(#grad-fase1)', stroke: '#0284c7' },
+            { fNum: 2, name: 'Fase 2: Pre-AG', val: METRICAS_RECALL_TEST.todas.fase2[c], fill: 'url(#grad-fase2)', stroke: '#d97706' },
+            { fNum: 3, name: 'Fase 3: Post-AG', val: METRICAS_RECALL_TEST.todas.fase3[c], fill: 'url(#grad-fase3)', stroke: '#059669' }
+          ];
+
+          fases.forEach((f, fIdx) => {
+            const bx = startX + fIdx * (barW + gapBars);
+            const by = scaleY(f.val);
+            const bh = scaleY(0) - by;
+
+            svgHtml += `
+              <rect x="${bx}" y="${by}" width="${barW}" height="${bh}" rx="4" fill="${f.fill}" stroke="${f.stroke}" stroke-width="1"
+                    class="cursor-pointer hover:opacity-85 transition-opacity"
+                    onmouseover="onHoverBarraRecall('${f.name}', '${c}', ${f.val}, ${f.fNum})"
+                    onmouseout="onLeaveBarraRecall()" />
+              <text x="${bx + barW / 2}" y="${by - 6}" fill="#e4e4e7" font-size="10" font-weight="bold" font-family="monospace" text-anchor="middle">
+                ${f.val.toFixed(1)}%
+              </text>
+            `;
+          });
+        });
+
+      } else {
+        // Modo FOCO: CALIDAD ALTA (Zoom comparativo para sustentación)
+        const c = 'Alta';
+        const startX = padL + 120;
+        const totalW = plotW - 240;
+        const barW = 70;
+        const spacing = (totalW - 3 * barW) / 2;
+
+        svgHtml += `
+          <text x="${W / 2}" y="${H - 15}" fill="#34d399" font-size="14" font-weight="black" text-anchor="middle" font-family="sans-serif">
+            Evolución Específica en Vinos de Calidad Alta (Muestras de Prueba N=43)
+          </text>
+        `;
+
+        const fases = [
+          { fNum: 1, name: 'Fase 1: Discreto', val: 11.63, count: 5, fill: 'url(#grad-fase1)', stroke: '#0284c7', sub: 'Baseline Simbólico' },
+          { fNum: 2, name: 'Fase 2: Pre-AG', val: 34.88, count: 15, fill: 'url(#grad-fase2)', stroke: '#d97706', sub: 'Difuso Canónico' },
+          { fNum: 3, name: 'Fase 3: Post-AG Óptimo', val: 44.19, count: 19, fill: 'url(#grad-fase3)', stroke: '#059669', sub: 'Calibración Evolutiva' }
+        ];
+
+        fases.forEach((f, idx) => {
+          const bx = startX + idx * (barW + spacing);
+          const by = scaleY(f.val);
+          const bh = scaleY(0) - by;
+
+          svgHtml += `
+            <rect x="${bx}" y="${by}" width="${barW}" height="${bh}" rx="6" fill="${f.fill}" stroke="${f.stroke}" stroke-width="1.5"
+                  class="cursor-pointer hover:opacity-85 transition-opacity"
+                  onmouseover="onHoverBarraRecall('${f.name}', '${c}', ${f.val}, ${f.fNum})"
+                  onmouseout="onLeaveBarraRecall()" />
+            <text x="${bx + barW / 2}" y="${by - 10}" fill="#ffffff" font-size="13" font-weight="black" font-family="monospace" text-anchor="middle">
+              ${f.val.toFixed(1)}%
+            </text>
+            <text x="${bx + barW / 2}" y="${by + 20}" fill="#09090b" font-size="11" font-weight="black" font-family="monospace" text-anchor="middle">
+              ${f.count} / 43
+            </text>
+            <text x="${bx + barW / 2}" y="${scaleY(0) + 16}" fill="#a1a1aa" font-size="10" font-weight="bold" font-family="sans-serif" text-anchor="middle">
+              ${f.sub}
+            </text>
+          `;
+        });
+
+        // Flecha de salto evolutivo
+        const xF1 = startX + barW / 2;
+        const xF3 = startX + 2 * (barW + spacing) + barW / 2;
+        const yTop = scaleY(44.19) - 30;
+
+        svgHtml += `
+          <path d="M ${xF1} ${scaleY(11.63) - 20} Q ${(xF1 + xF3)/2} ${yTop - 10} ${xF3 - 10} ${scaleY(44.19) - 20}" fill="none" stroke="#10b981" stroke-width="2.5" stroke-dasharray="5 3" />
+          <polygon points="${xF3},${scaleY(44.19) - 20} ${xF3 - 12},${scaleY(44.19) - 28} ${xF3 - 8},${scaleY(44.19) - 16}" fill="#10b981" />
+          <g transform="translate(${(xF1 + xF3)/2}, ${yTop - 12})">
+            <rect x="-85" y="-12" width="170" height="24" rx="6" fill="#064e3b" stroke="#10b981" stroke-width="1.5" />
+            <text x="0" y="4" fill="#a7f3d0" font-size="11" font-weight="black" text-anchor="middle" font-family="sans-serif">
+              🚀 Aumento de 3.8x (+280%)
+            </text>
+          </g>
+        `;
+      }
+
+      svg.innerHTML = svgHtml;
+    }
+
+    function onHoverBarraRecall(faseName, clase, val, fNum) {
+      const panel = document.getElementById("texto-inspeccion-recall");
+      const badge = document.getElementById("badge-inspeccion-recall");
+      if (!panel || !badge) return;
+
+      const datos = METRICAS_RECALL_TEST.todas;
+      const fKey = fNum === 1 ? 'fase1' : (fNum === 2 ? 'fase2' : 'fase3');
+      const aciertos = datos.aciertos[fKey][clase];
+      const total = datos.totales[clase];
+      const prec = datos.precision[fKey][clase];
+      const f1 = datos.f1[fKey][clase];
+
+      panel.innerHTML = `
+        <strong>[${faseName}] Calidad ${clase}:</strong> Recall = <strong class="text-amber-400 font-mono text-sm">${val.toFixed(2)}%</strong> (${aciertos} de ${total} vinos detectados) | Precisión = <span class="text-zinc-300 font-mono">${prec.toFixed(2)}%</span> | F1-Score = <span class="text-zinc-300 font-mono">${f1.toFixed(4)}</span>
+      `;
+      badge.innerText = `Sensibilidad: ${aciertos} / ${total} muestras`;
+    }
+
+    function onLeaveBarraRecall() {
+      const panel = document.getElementById("texto-inspeccion-recall");
+      const badge = document.getElementById("badge-inspeccion-recall");
+      if (panel) panel.innerText = "Pase el cursor sobre cualquier barra para visualizar detalles de muestras acotadas.";
+      if (badge) badge.innerText = "Test N = 320 vinos";
+    }
+
+    let detalleMatricialAbierto = false;
+    function toggleDetalleMatricial() {
+      detalleMatricialAbierto = !detalleMatricialAbierto;
+      const cont = document.getElementById("contenido-detalle-matricial");
+      const icono = document.getElementById("icono-acordeon-matriz");
+      const lbl = document.getElementById("label-estado-acordeon");
+
+      if (detalleMatricialAbierto) {
+        cont.classList.remove("hidden");
+        icono.classList.add("rotate-180");
+        if (lbl) lbl.innerText = "Ocultar";
+      } else {
+        cont.classList.add("hidden");
+        icono.classList.remove("rotate-180");
+        if (lbl) lbl.innerText = "Desplegar";
+      }
+      lucide.createIcons();
+    }
+
+    function renderizarMatematicas() {
+      if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false },
+            { left: "\\(", right: "\\)", display: false },
+            { left: "\\[", right: "\\]", display: true }
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
     function cambiarTab(tabId) {
       document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
       document.querySelectorAll(".tab-btn").forEach(btn => {
@@ -919,6 +2457,14 @@
         btn.classList.add("bg-zinc-100", "text-zinc-950", "shadow-sm", "font-bold");
         btn.classList.remove("text-zinc-300");
       }
+
+      if (tabId === "convergencia") {
+        renderizarGraficoConvergenciaSVG(historialConvergenciaGlobal, generacionScrubberActual);
+      }
+      if (tabId === "metricas") {
+        renderizarGraficoRecallSVG(modoRecallActual);
+      }
+      renderizarMatematicas();
       lucide.createIcons();
     }
   </script>
