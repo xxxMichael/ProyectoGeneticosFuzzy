@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wine Quality AI — Clasificación Difusa & Algoritmo Genético (XAI)</title>
+  
+  <!-- Dependencias Externas (Tailwind CSS, Lucide Icons, Canvas Confetti) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- ===================================================================== -->
+  <!-- SISTEMA DE DISEÑO: TOKENS DE COLOR (CSS VARIABLES EN CABECERA)       -->
+  <!-- TEMA: Zinc / Slate Oscuro con Acentos Borgoña & Oro Editorial         -->
+  <!-- ===================================================================== -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+    
+    :root {
+      /* Fondos y Superficies Neutras (Zinc/Slate) */
+      --color-bg-base: #09090b;             /* zinc-950 */
+      --color-surface-card: #18181b;        /* zinc-900 */
+      --color-surface-elevated: #27272a;    /* zinc-800 */
+      --color-surface-input: #121215;       /* zinc-925 */
+      
+      /* Bordes y Separadores */
+      --color-border-subtle: #27272a;       /* zinc-800 */
+      --color-border-prominent: #3f3f46;    /* zinc-700 */
+      --color-border-hover: #52525b;        /* zinc-600 */
+
+      /* Acentos de Marca: Borgoña Enológico y Oro */
+      --color-burgundy: #722F37;            /* Borgoña Noble */
+      --color-burgundy-light: #9f1239;      /* rose-800 */
+      --color-burgundy-bg: #2b0811;         /* fondo suave borgoña */
+      
+      --color-gold: #d97706;                /* ámbar / oro cálido */
+      --color-gold-light: #f59e0b;          /* ámbar-500 */
+      --color-gold-bg: #2d1804;             /* fondo suave oro */
+
+      /* Tipografía y Contraste (WCAG AAA >= 7:1) */
+      --color-text-primary: #fafafa;        /* zinc-50 */
+      --color-text-secondary: #d4d4d8;      /* zinc-300 (contraste 9.5:1 en zinc-950) */
+      --color-text-muted: #a1a1aa;          /* zinc-400 (contraste 5.5:1 en zinc-950) */
+
+      /* Semántica de Calidad (Sin gradientes, alto contraste) */
+      --status-alta-bg: #064e3b;            /* esmeralda oscuro */
+      --status-alta-border: #10b981;        /* esmeralda brillante */
+      --status-alta-text: #a7f3d0;          /* esmeralda claro */
+
+      --status-media-bg: #451a03;           /* ámbar oscuro */
+      --status-media-border: #f59e0b;       /* ámbar brillante */
+      --status-media-text: #fde68a;         /* ámbar claro */
+
+      --status-baja-bg: #4c0519;            /* carmesí oscuro */
+      --status-baja-border: #f43f5e;        /* carmesí brillante */
+      --status-baja-text: #fecdd3;          /* carmesí claro */
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--color-bg-base);
+      color: var(--color-text-primary);
+    }
+
+    /* Estilo de Tarjetas Planas Editoriales (Flat Surface, sin gradientes borrosos) */
+    .card-editorial {
+      background-color: var(--color-surface-card);
+      border: 1px solid var(--color-border-subtle);
+    }
+
+    .card-editorial-elevated {
+      background-color: var(--color-surface-elevated);
+      border: 1px solid var(--color-border-prominent);
+    }
+
+    /* Controles de Sliders Sólidos */
+    input[type=range] {
+      accent-color: var(--color-gold-light);
+    }
+    input[type=range]::-webkit-slider-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #fafafa;
+      cursor: pointer;
+      border: 3px solid var(--color-burgundy);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+      transition: transform 0.1s ease-in-out;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    /* Aguja / Indicador del Centroide */
+    .gauge-needle {
+      transition: left 0.5s cubic-bezier(0.2, 0.8, 0.3, 1);
+    }
+  </style>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            zinc: {
+              850: '#1f1f23',
+              925: '#121215',
+              950: '#09090b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen antialiased flex flex-col selection:bg-amber-600 selection:text-white">
+
+  <!-- ===================================================================== -->
+  <!-- BARRA DE NAVEGACIÓN SUPERIOR (HEADER EDITORIAL ZINC)                 -->
+  <!-- ===================================================================== -->
+  <header class="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-md border-b border-zinc-800 px-6 py-3.5">
+    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-4">
+      
+      <!-- Marca y Título -->
+      <div class="flex items-center gap-3.5">
+        <div class="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-center shadow-sm">
+          <i data-lucide="wine" class="w-5 h-5 text-amber-500 stroke-[2.2]"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2.5">
+            <h1 class="text-lg font-black tracking-tight text-zinc-100">
+              Wine Quality <span class="text-amber-500 font-extrabold">AI System</span>
+            </h1>
+            <span class="px-2.5 py-0.5 text-[11px] font-bold rounded-md bg-zinc-900 text-amber-400 border border-zinc-700 uppercase tracking-wider">
+              XAI • Mamdani & DEAP
+            </span>
+          </div>
+          <p class="text-xs text-zinc-300 font-medium mt-0.5">
+            Minería (PRISM + Apriori) • Lógica Difusa • Algoritmo Genético
+          </p>
+        </div>
+      </div>
+
+      <!-- Navegación por Pestañas (Tabs Flat) -->
+      <nav class="flex items-center gap-1.5 bg-zinc-900/90 p-1.5 rounded-xl border border-zinc-800 text-xs font-semibold overflow-x-auto max-w-full">
+        <button onclick="cambiarTab('clasificador')" id="tab-clasificador" class="tab-btn px-4 py-2 rounded-lg transition-all flex items-center gap-2 bg-zinc-100 text-zinc-950 shadow-sm font-bold">
+          <i data-lucide="sparkles" class="w-4 h-4 text-amber-600"></i> Clasificador en Vivo
+        </button>
+        <button onclick="cambiarTab('metricas')" id="tab-metricas" class="tab-btn px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-zinc-300 hover:text-white hover:bg-zinc-800">
+          <i data-lucide="bar-chart-3" class="w-4 h-4 text-zinc-400"></i> Benchmarking (3 Fases)
+        </button>
+        <button onclick="cambiarTab('convergencia')" id="tab-convergencia" class="tab-btn px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-zinc-300 hover:text-white hover:bg-zinc-800">
+          <i data-lucide="dna" class="w-4 h-4 text-zinc-400"></i> Algoritmo Genético
+        </button>
+        <button onclick="cambiarTab('mfs')" id="tab-mfs" class="tab-btn px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-zinc-300 hover:text-white hover:bg-zinc-800">
+          <i data-lucide="activity" class="w-4 h-4 text-zinc-400"></i> Funciones Difusas
+        </button>
+        <button onclick="cambiarTab('reglas')" id="tab-reglas" class="tab-btn px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-zinc-300 hover:text-white hover:bg-zinc-800">
+          <i data-lucide="book-open" class="w-4 h-4 text-zinc-400"></i> Base de Reglas XAI
+        </button>
+        <button onclick="cambiarTab('arquitectura')" id="tab-arquitectura" class="tab-btn px-4 py-2 rounded-lg transition-all flex items-center gap-2 text-zinc-300 hover:text-white hover:bg-zinc-800">
+          <i data-lucide="layers" class="w-4 h-4 text-zinc-400"></i> Arquitectura
+        </button>
+      </nav>
+
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- CONTENEDOR PRINCIPAL                                                 -->
+  <!-- ===================================================================== -->
+  <main class="max-w-7xl mx-auto px-6 py-8 flex-1 w-full space-y-8">
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: CLASIFICADOR INTERACTIVO EN VIVO                             -->
+    <!-- =================================================================== -->
+    <section id="sec-clasificador" class="tab-content block space-y-7">
+      
+      <!-- Barra de Perfiles Predefinidos (Estilo Editorial Sólido) -->
+      <div class="card-editorial rounded-2xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-amber-500 flex items-center gap-2">
+            <i data-lucide="flask-conical" class="w-4 h-4 text-amber-500"></i> Perfiles Enológicos de Demostración
+          </h2>
+          <p class="text-xs text-zinc-300 mt-1">Carga al instante muestras arquetípicas para evaluar el comportamiento del motor difuso</p>
+        </div>
+        <div class="flex flex-wrap gap-2.5">
+          <button onclick="cargarPreset('Vino Gran Reserva (Alta Calidad)')" class="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-emerald-500/50 text-emerald-300 text-xs font-bold transition-all flex items-center gap-2 shadow-sm">
+            <i data-lucide="crown" class="w-4 h-4 text-emerald-400"></i> Gran Reserva (Alta)
+          </button>
+          <button onclick="cargarPreset('Vino de Mesa Estándar (Calidad Media)')" class="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-amber-500/50 text-amber-300 text-xs font-bold transition-all flex items-center gap-2 shadow-sm">
+            <i data-lucide="wine" class="w-4 h-4 text-amber-400"></i> Mesa Estándar (Media)
+          </button>
+          <button onclick="cargarPreset('Vino Picado / Ácido (Calidad Baja)')" class="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-rose-500/50 text-rose-300 text-xs font-bold transition-all flex items-center gap-2 shadow-sm">
+            <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400"></i> Vino Picado (Baja)
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-7">
+        
+        <!-- Controles de las 11 Variables Fisicoquímicas (7 columnas) -->
+        <div class="lg:col-span-7 space-y-5">
+          <div class="card-editorial rounded-2xl p-6 space-y-6">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-4">
+              <div>
+                <h3 class="font-extrabold text-base text-zinc-100 flex items-center gap-2.5">
+                  <i data-lucide="sliders-horizontal" class="w-5 h-5 text-amber-500"></i> Parámetros Fisicoquímicos del Vino
+                </h3>
+                <p class="text-xs text-zinc-300 mt-0.5">Ajusta los 11 valores continuos; la inferencia se reevalúa en tiempo real</p>
+              </div>
+              <span class="text-xs font-mono font-semibold text-zinc-300 bg-zinc-800 px-3 py-1 rounded-full border border-zinc-700">
+                11 Variables
+              </span>
+            </div>
+
+            <!-- Grupos Semánticos de Variables -->
+            <div id="sliders-container" class="space-y-5">
+              <!-- Inyectado dinámicamente con JS -->
+            </div>
+
+            <!-- Botón de Inferencia -->
+            <div class="pt-2 flex justify-end">
+              <button onclick="ejecutarClasificacion()" class="w-full md:w-auto px-7 py-3.5 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 font-extrabold text-sm shadow-md transition-all flex items-center justify-center gap-2.5">
+                <i data-lucide="sparkles" class="w-4 h-4 text-amber-600"></i> Ejecutar Inferencia Mamdani
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel de Veredicto e Interpretabilidad XAI (5 columnas) -->
+        <div class="lg:col-span-5 space-y-5">
+          
+          <!-- Card de Veredicto y Centroide -->
+          <div id="resultado-card" class="card-editorial-elevated rounded-2xl p-6 relative overflow-hidden transition-all space-y-6">
+            
+            <div class="flex items-center justify-between border-b border-zinc-700 pb-3">
+              <span class="text-xs font-bold uppercase tracking-wider text-zinc-300">Veredicto del Sistema Difuso</span>
+              <span id="badge-tiempo" class="text-xs font-mono font-semibold text-emerald-400 bg-zinc-900 px-2.5 py-0.5 rounded-full border border-zinc-700">
+                ⚡ ~4.0 ms
+              </span>
+            </div>
+
+            <!-- Insignia Principal de Clase -->
+            <div class="text-center py-2">
+              <div id="badge-clase" class="inline-flex items-center gap-3 px-6 py-3 rounded-2xl text-2xl font-black uppercase tracking-wider bg-zinc-900 text-zinc-200 border-2 border-zinc-700 shadow-md">
+                <i data-lucide="loader" class="w-6 h-6 animate-spin text-amber-500"></i> Evaluando...
+              </div>
+
+              <!-- Indicador del Centroide Cuantitativo (COG) -->
+              <div class="mt-6 space-y-3 bg-zinc-900 p-4 rounded-xl border border-zinc-800">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold uppercase tracking-wide text-zinc-300">Centroide Cuantitativo (COG)</span>
+                  <span id="label-centroide" class="font-mono text-xl font-extrabold text-zinc-100">0.00 <span class="text-xs font-normal text-zinc-400">/ 10.0</span></span>
+                </div>
+
+                <!-- Barra de Rango Segmentada con Aguja -->
+                <div class="relative pt-6 pb-2">
+                  
+                  <!-- Aguja Indicadora Dinámica -->
+                  <div id="aguja-centroide" class="gauge-needle absolute top-0 left-[0%] -translate-x-1/2 flex flex-col items-center">
+                    <span id="pin-centroide" class="px-2 py-0.5 text-[11px] font-mono font-bold bg-white text-zinc-950 rounded-md shadow border border-zinc-300">
+                      0.00
+                    </span>
+                    <div class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-white"></div>
+                  </div>
+
+                  <!-- Pista de 3 Segmentos Semánticos Sólidos -->
+                  <div class="h-4 rounded-full overflow-hidden flex border border-zinc-700 bg-zinc-950 shadow-inner">
+                    <!-- Zona Baja: 0.0 - 5.30 (53%) -->
+                    <div class="w-[53%] bg-[#881337] relative group" title="Zona Baja: &lt; 5.30">
+                      <span class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-rose-100">Baja (&lt; 5.3)</span>
+                    </div>
+                    <!-- Zona Media: 5.30 - 6.60 (13%) -->
+                    <div class="w-[13%] bg-[#d97706] relative group" title="Zona Media: 5.30 - 6.60">
+                      <span class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-amber-950 font-black">Med</span>
+                    </div>
+                    <!-- Zona Alta: 6.60 - 10.0 (34%) -->
+                    <div class="w-[34%] bg-[#047857] relative group" title="Zona Alta: &ge; 6.60">
+                      <span class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-emerald-100 font-extrabold">Alta (&ge; 6.6)</span>
+                    </div>
+                  </div>
+
+                  <!-- Etiquetas y Puntos de Corte -->
+                  <div class="flex justify-between text-[11px] font-mono font-semibold text-zinc-300 px-1 mt-2">
+                    <span class="text-rose-400">0.0</span>
+                    <span class="text-zinc-300 font-bold bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700">Corte 5.30</span>
+                    <span class="text-zinc-300 font-bold bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700">Corte 6.60</span>
+                    <span class="text-emerald-400">10.0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Justificación Enológica (XAI) -->
+            <div class="p-4 rounded-xl bg-zinc-900 border border-zinc-800 space-y-2 text-xs leading-relaxed">
+              <div class="font-bold text-amber-400 flex items-center gap-2">
+                <i data-lucide="message-square-quote" class="w-4 h-4 text-amber-400"></i> Justificación Enológica (XAI):
+              </div>
+              <p id="texto-explicacion" class="text-zinc-200 font-medium">
+                Cargando inferencia...
+              </p>
+            </div>
+          </div>
+
+          <!-- Visor de Reglas Difusas Disparadas -->
+          <div class="card-editorial rounded-2xl p-5 space-y-3.5">
+            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-200 flex items-center gap-2">
+                <i data-lucide="flame" class="w-4 h-4 text-amber-500"></i> Reglas Activas en Inferencia
+              </h4>
+              <span id="badge-total-activas" class="text-xs font-mono font-bold text-amber-300 bg-zinc-900 border border-zinc-700 px-2.5 py-0.5 rounded-full">
+                0 activas
+              </span>
+            </div>
+
+            <div id="lista-reglas-activas" class="space-y-2.5 max-h-72 overflow-y-auto pr-1 text-xs">
+              <!-- Se inyecta dinámicamente con JS -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: BENCHMARKING COMPARATIVO EN 3 FASES                          -->
+    <!-- =================================================================== -->
+    <section id="sec-metricas" class="tab-content hidden space-y-7">
+      <div class="card-editorial rounded-2xl p-7 space-y-7">
+        
+        <div>
+          <h2 class="text-lg font-extrabold text-zinc-100 flex items-center gap-2.5">
+            <i data-lucide="trending-up" class="w-5 h-5 text-amber-500"></i> Evaluación Comparativa Progresiva en 3 Fases
+          </h2>
+          <p class="text-xs text-zinc-300 mt-1">
+            Evaluación empírica interna estricta (sin modelos externos de ML) sobre las 320 muestras del conjunto de prueba (Test)
+          </p>
+        </div>
+
+        <!-- 3 Tarjetas de Fases -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          
+          <!-- Fase 1: Baseline -->
+          <div class="p-6 rounded-xl bg-zinc-900 border border-zinc-800 space-y-3.5 shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-zinc-400 uppercase tracking-wider">Fase 1</span>
+              <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700">Modelo Base</span>
+            </div>
+            <h3 class="font-bold text-base text-zinc-100">Reglas Discretas Puras</h3>
+            <p class="text-xs text-zinc-300 leading-normal">
+              PRISM + Apriori evaluado con votación ponderada discreta por confianza.
+            </p>
+            <div class="pt-3 border-t border-zinc-800 space-y-2 text-xs font-mono">
+              <div class="flex justify-between text-zinc-300"><span>Exactitud Test:</span><span class="font-bold text-zinc-100">57.50%</span></div>
+              <div class="flex justify-between text-zinc-300"><span>F1-Macro Test:</span><span class="font-bold text-zinc-100">0.4674</span></div>
+              <div class="flex justify-between text-zinc-300"><span>F1-Weighted:</span><span class="font-bold text-zinc-100">0.5512</span></div>
+              <div class="flex justify-between text-zinc-300"><span>Cobertura Test:</span><span class="font-bold text-amber-400">79.69%</span></div>
+              <div class="flex justify-between text-zinc-300"><span>Reglas Activas:</span><span class="font-bold text-zinc-200">26</span></div>
+            </div>
+          </div>
+
+          <!-- Fase 2: Pre-AG -->
+          <div class="p-6 rounded-xl bg-zinc-900 border border-zinc-700 space-y-3.5 shadow-sm">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-amber-400 uppercase tracking-wider">Fase 2</span>
+              <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-zinc-800 text-amber-300 border border-zinc-700">Pre-AG</span>
+            </div>
+            <h3 class="font-bold text-base text-amber-200">Lógica Difusa Canónica</h3>
+            <p class="text-xs text-zinc-300 leading-normal">
+              Motor Mamdani con cuantiles empíricos (33% por variable) y funciones Trapezoidales-Triangulares.
+            </p>
+            <div class="pt-3 border-t border-zinc-800 space-y-2 text-xs font-mono">
+              <div class="flex justify-between text-zinc-300"><span>Exactitud Test:</span><span class="font-bold text-amber-300">55.94%</span></div>
+              <div class="flex justify-between text-zinc-300"><span>F1-Macro Test:</span><span class="font-bold text-amber-300">0.4804</span></div>
+              <div class="flex justify-between text-zinc-300"><span>F1-Weighted:</span><span class="font-bold text-amber-300">0.5489</span></div>
+              <div class="flex justify-between text-zinc-300"><span>Cobertura Test:</span><span class="font-bold text-emerald-400 font-extrabold">98.44%</span></div>
+              <div class="flex justify-between text-zinc-300"><span>Reglas Activas:</span><span class="font-bold text-amber-300">26</span></div>
+            </div>
+          </div>
+
+          <!-- Fase 3: Post-AG -->
+          <div class="p-6 rounded-xl bg-zinc-900 border-2 border-amber-500/80 space-y-3.5 shadow-md">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-amber-400 uppercase tracking-wider">Fase 3</span>
+              <span class="px-2.5 py-0.5 text-xs font-bold rounded-full bg-amber-500 text-zinc-950 font-black">Post-AG Óptimo</span>
+            </div>
+            <h3 class="font-bold text-base text-zinc-100">Difuso + Algoritmo Genético</h3>
+            <p class="text-xs text-zinc-300 leading-normal">
+              Funciones calibradas por AG y poda selectiva del 38.5% de reglas redundantes.
+            </p>
+            <div class="pt-3 border-t border-zinc-800 space-y-2 text-xs font-mono">
+              <div class="flex justify-between text-zinc-200"><span>Exactitud Test:</span><span class="font-extrabold text-emerald-400">60.31% (+2.81%)</span></div>
+              <div class="flex justify-between text-zinc-200"><span>F1-Macro Test:</span><span class="font-extrabold text-emerald-400">0.5647 (+20.8%)</span></div>
+              <div class="flex justify-between text-zinc-200"><span>F1-Weighted:</span><span class="font-extrabold text-emerald-400">0.6019 (+9.2%)</span></div>
+              <div class="flex justify-between text-zinc-200"><span>Cobertura Test:</span><span class="font-extrabold text-emerald-400">99.38%</span></div>
+              <div class="flex justify-between text-zinc-200"><span>Reglas Activas:</span><span class="font-bold text-amber-400">16 (-38.5%)</span></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Matrices de Confusión Comparativas -->
+        <div class="pt-4 border-t border-zinc-800 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-zinc-100 flex items-center gap-2">
+              <i data-lucide="grid" class="w-4 h-4 text-amber-500"></i> Matrices de Confusión en Prueba (Test N=320)
+            </h3>
+            <span class="text-xs text-zinc-400 font-mono">Alta, Baja, Media</span>
+          </div>
+          <div class="rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 p-3 shadow-inner">
+            <img src="/plots/matrices_confusion_comparativas.png" alt="Matrices de Confusión Comparativas" class="w-full h-auto rounded-lg max-h-[440px] object-contain mx-auto" />
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: ALGORITMO GENÉTICO (CONVERGENCIA)                            -->
+    <!-- =================================================================== -->
+    <section id="sec-convergencia" class="tab-content hidden space-y-7">
+      <div class="card-editorial rounded-2xl p-7 space-y-7">
+        
+        <div>
+          <h2 class="text-lg font-extrabold text-zinc-100 flex items-center gap-2.5">
+            <i data-lucide="dna" class="w-5 h-5 text-amber-500"></i> Optimización Evolutiva del Algoritmo Genético
+          </h2>
+          <p class="text-xs text-zinc-300 mt-1">
+            Convergencia del fitness multi-criterio y poda de complejidad a lo largo de 30 generaciones (DEAP & NumPy)
+          </p>
+        </div>
+
+        <!-- Gráfico de Convergencia -->
+        <div class="rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 p-3 shadow-inner">
+          <img src="/plots/convergencia_fitness_ga.png" alt="Convergencia del Algoritmo Genético" class="w-full h-auto rounded-lg max-h-[500px] object-contain mx-auto" />
+        </div>
+
+        <!-- Explicación de la Función de Fitness -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+          
+          <div class="p-5 rounded-xl bg-zinc-900 border border-zinc-800 space-y-3">
+            <h4 class="text-xs font-bold uppercase text-amber-400">Fórmula de Aptitud Multi-Criterio</h4>
+            <div class="p-3.5 rounded-lg bg-zinc-950 font-mono text-xs text-amber-300 border border-zinc-800 leading-relaxed">
+              Fitness = 0.70 · F1_Macro + 0.20 · Cobertura - 0.10 · (Reglas_Activas / Total_Reglas)
+            </div>
+            <p class="text-xs text-zinc-300 leading-relaxed">
+              La formulación busca el equilibrio óptimo entre exactitud balanceada por clase ($F1_{macro}$), cobertura de muestras y compacidad de la base de reglas para evitar sobreajuste y preservar explicabilidad.
+            </p>
+          </div>
+
+          <div class="p-5 rounded-xl bg-zinc-900 border border-zinc-800 space-y-3">
+            <h4 class="text-xs font-bold uppercase text-amber-400">Arquitectura del Cromosoma Mixto</h4>
+            <ul class="text-xs text-zinc-300 space-y-1.5 leading-relaxed">
+              <li>• <span class="font-bold text-zinc-100">Parte 1 (33 genes continuos):</span> 11 variables $\times$ 3 puntos de corte ($a_i < b_i < c_i$).</li>
+              <li>• <span class="font-bold text-amber-400">Parte 2 (26 genes reales):</span> Pesos $w_k \in [0.0, 1.0]$ y estado de activación de cada regla.</li>
+              <li>• <span class="font-bold text-emerald-400">Operadores:</span> Cruce SBX + Uniforme, Mutación Gaussiana Acotada y Elitismo del 10%.</li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 4: FUNCIONES DE PERTENENCIA DIFUSAS (MFS)                       -->
+    <!-- =================================================================== -->
+    <section id="sec-mfs" class="tab-content hidden space-y-7">
+      <div class="card-editorial rounded-2xl p-7 space-y-7">
+        
+        <div>
+          <h2 class="text-lg font-extrabold text-zinc-100 flex items-center gap-2.5">
+            <i data-lucide="activity" class="w-5 h-5 text-amber-500"></i> Evolución Geométrica de Funciones de Pertenencia
+          </h2>
+          <p class="text-xs text-zinc-300 mt-1">
+            Comparación directa: Curvas iniciales basadas en cuantiles vs Curvas calibradas por el Algoritmo Genético
+          </p>
+        </div>
+
+        <div class="rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 p-3 shadow-inner">
+          <img src="/plots/comparativa_mfs_pre_post_ga.png" alt="Comparativa de Funciones de Pertenencia Pre vs Post GA" class="w-full h-auto rounded-lg max-h-[520px] object-contain mx-auto" />
+        </div>
+
+        <div class="p-4 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 leading-relaxed space-y-1">
+          <div class="font-bold text-amber-400 flex items-center gap-2">
+            <i data-lucide="info" class="w-4 h-4 text-amber-400"></i> Justificación de Funciones Híbridas Trapezoidal-Triangular:
+          </div>
+          <p>
+            Las funciones trapezoidales con hombros abiertos garantizan saturación $\mu = 1.0$ en extremos reales (e.g. alcohol $> 13.5\%$ o acidez volátil $< 0.30$), evitando caídas artificiales de pertenencia en vinos con concentraciones extremas.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 5: BASE DE REGLAS XAI                                          -->
+    <!-- =================================================================== -->
+    <section id="sec-reglas" class="tab-content hidden space-y-7">
+      <div class="card-editorial rounded-2xl p-7 space-y-6">
+        
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
+          <div>
+            <h2 class="text-lg font-extrabold text-zinc-100 flex items-center gap-2.5">
+              <i data-lucide="book-open" class="w-5 h-5 text-amber-500"></i> Base de Reglas Integrada y Optimizada
+            </h2>
+            <p class="text-xs text-zinc-300 mt-0.5">26 reglas candidatas extraídas por PRISM y Apriori y filtradas por el Algoritmo Genético</p>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <span class="text-xs font-bold text-emerald-300 bg-zinc-900 border border-emerald-600 px-3 py-1 rounded-full shadow-sm">
+              16 Reglas Activas
+            </span>
+            <span class="text-xs font-bold text-zinc-400 bg-zinc-900 border border-zinc-700 px-3 py-1 rounded-full shadow-sm">
+              10 Reglas Podadas
+            </span>
+          </div>
+        </div>
+
+        <div class="rounded-xl overflow-hidden border border-zinc-800 bg-zinc-950 p-2 shadow-inner">
+          <img src="/plots/evolucion_reglas.png" alt="Evolución y Poda de Reglas" class="w-full h-auto rounded-lg max-h-[380px] object-contain mx-auto" />
+        </div>
+
+        <!-- Tabla Accesible de Reglas -->
+        <div class="overflow-x-auto rounded-xl border border-zinc-800">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-zinc-900 text-zinc-300 border-b border-zinc-800 font-bold uppercase tracking-wider text-[11px]">
+                <th class="py-3 px-3">#</th>
+                <th class="py-3 px-3">Origen</th>
+                <th class="py-3 px-4">Regla Lingüística Difusa</th>
+                <th class="py-3 px-3">Consecuente</th>
+                <th class="py-3 px-3">Confianza</th>
+                <th class="py-3 px-3">Lift</th>
+                <th class="py-3 px-3">Peso AG</th>
+                <th class="py-3 px-3 text-center">Estado</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-reglas-body" class="divide-y divide-zinc-800 font-mono text-zinc-200">
+              <!-- Inyectado dinámicamente con JS -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 6: ARQUITECTURA & SUSTENTACIÓN                                 -->
+    <!-- =================================================================== -->
+    <section id="sec-arquitectura" class="tab-content hidden space-y-7">
+      <div class="card-editorial rounded-2xl p-7 space-y-7">
+        
+        <div>
+          <h2 class="text-lg font-extrabold text-zinc-100 flex items-center gap-2.5">
+            <i data-lucide="layers" class="w-5 h-5 text-amber-500"></i> Arquitectura del Pipeline Híbrido
+          </h2>
+          <p class="text-xs text-zinc-300 mt-1">Desacoplamiento modular de las 4 técnicas computacionales para clasificación interpretable</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="p-5 rounded-xl bg-zinc-900 border border-zinc-800 space-y-2.5">
+            <div class="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-amber-400 font-extrabold text-sm">1</div>
+            <h4 class="font-bold text-sm text-zinc-100">PRISM (Desde Cero)</h4>
+            <p class="text-xs text-zinc-300 leading-relaxed">Inducción modular de reglas de clasificación directa optimizando pureza condicional $p(C \mid A_i=v_j)$.</p>
+          </div>
+          <div class="p-5 rounded-xl bg-zinc-900 border border-zinc-800 space-y-2.5">
+            <div class="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-amber-400 font-extrabold text-sm">2</div>
+            <h4 class="font-bold text-sm text-zinc-100">Apriori (Desde Cero)</h4>
+            <p class="text-xs text-zinc-300 leading-relaxed">Minería de combinaciones frecuentes con filtro estricto a consecuente $\text{quality}$ ($\text{Conf}\ge 60\%, \text{Lift}>1.20$).</p>
+          </div>
+          <div class="p-5 rounded-xl bg-zinc-900 border border-zinc-800 space-y-2.5">
+            <div class="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-amber-400 font-extrabold text-sm">3</div>
+            <h4 class="font-bold text-sm text-zinc-100">Lógica Difusa Mamdani</h4>
+            <p class="text-xs text-zinc-300 leading-relaxed">Modelado continuo de 11 variables con funciones híbridas Trap-Tri y defuzzificación cuantitativa por centroide.</p>
+          </div>
+          <div class="p-5 rounded-xl bg-zinc-900 border border-zinc-800 space-y-2.5">
+            <div class="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700 flex items-center justify-center text-amber-400 font-extrabold text-sm">4</div>
+            <h4 class="font-bold text-sm text-zinc-100">Algoritmo Genético</h4>
+            <p class="text-xs text-zinc-300 leading-relaxed">Optimización evolutiva del cromosoma mixto (59 genes) equilibrando F1-Macro, cobertura y poda de reglas.</p>
+          </div>
+        </div>
+
+        <div class="p-6 rounded-xl bg-zinc-900 border border-zinc-800 space-y-3">
+          <h3 class="font-bold text-sm text-zinc-100">Flujo Completo de Inferencia</h3>
+          <div class="p-4 rounded-lg bg-zinc-950 font-mono text-xs text-zinc-200 overflow-x-auto leading-relaxed border border-zinc-800">
+            NUEVO VINO (11 Variables Fisicoquímicas Continuas)<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+            Fuzzificación Híbrida Trapezoidal-Triangular (Bajo, Medio, Alto)<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+            Evaluación de Reglas Activas (α_k = w_k · min μ)<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+            Agregación Mamdani & Defuzzificación Cuantitativa por Centroide (COG)<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;↓<br>
+            CALIFICACIÓN FINAL: BAJA (&lt; 5.30) / MEDIA (5.30 - 6.60) / ALTA (&ge; 6.60) + EXPLICACIÓN XAI
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- PIE DE PÁGINA (FOOTER)                                               -->
+  <!-- ===================================================================== -->
+  <footer class="border-t border-zinc-800 bg-zinc-950 py-4 px-6 text-center text-xs text-zinc-400">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2">
+      <span class="font-medium text-zinc-300">🍷 <strong>Wine Quality AI System</strong> — Inteligencia Artificial II</span>
+      <span class="font-mono text-zinc-400">Dataset: winequality-red.csv (1,599 registros, UCI ML)</span>
+    </div>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT DEL CLIENTE (INTERACTIVIDAD Y LLAMADAS A LA API)          -->
+  <!-- ===================================================================== -->
+  <script>
+    // =========================================================================
+    // CONSTANTES Y CONFIGURACIÓN EN CABECERA (CODE-CLARITY)
+    // =========================================================================
+    const UMBRAL_CORTE_BAJA_MEDIA = 5.30;
+    const UMBRAL_CORTE_MEDIA_ALTA = 6.60;
+
+    // Configuración de Tokens de Color para Semántica de Calidad
+    const PALETA_CALIDAD = {
+      "Alta": {
+        badgeClass: "inline-flex items-center gap-3 px-6 py-3 rounded-2xl text-2xl font-black uppercase tracking-wider bg-[#064e3b] text-[#a7f3d0] border-2 border-[#10b981] shadow-md",
+        icon: "crown",
+        iconColor: "text-[#10b981]"
+      },
+      "Media": {
+        badgeClass: "inline-flex items-center gap-3 px-6 py-3 rounded-2xl text-2xl font-black uppercase tracking-wider bg-[#451a03] text-[#fde68a] border-2 border-[#f59e0b] shadow-md",
+        icon: "award",
+        iconColor: "text-[#f59e0b]"
+      },
+      "Baja": {
+        badgeClass: "inline-flex items-center gap-3 px-6 py-3 rounded-2xl text-2xl font-black uppercase tracking-wider bg-[#4c0519] text-[#fecdd3] border-2 border-[#f43f5e] shadow-md",
+        icon: "alert-octagon",
+        iconColor: "text-[#f43f5e]"
+      }
+    };
+
+    // Clasificación semántica de las 11 variables para la distribución por tarjetas
+    const GRUPOS_VARIABLES = [
+      {
+        titulo: "Estructura y Alcohol",
+        icono: "flame",
+        color: "text-amber-500",
+        variables: ["alcohol", "density"]
+      },
+      {
+        titulo: "Acidez y Balance pH",
+        icono: "droplet",
+        color: "text-amber-500",
+        variables: ["volatile acidity", "fixed acidity", "citric acid", "pH"]
+      },
+      {
+        titulo: "Conservación y Sulfatos",
+        icono: "shield-check",
+        color: "text-amber-500",
+        variables: ["sulphates", "free sulfur dioxide", "total sulfur dioxide"]
+      },
+      {
+        titulo: "Cuerpo y Mineralidad",
+        icono: "sparkles",
+        color: "text-amber-500",
+        variables: ["residual sugar", "chlorides"]
+      }
+    ];
+
+    const METADATOS_VARIABLES = {
+      "fixed acidity": { label: "Acidez Fija", unidad: "g/dm³", paso: 0.1, desc: "Ácido tartárico principal" },
+      "volatile acidity": { label: "Acidez Volátil", unidad: "g/dm³", paso: 0.01, desc: "Ácido acético (defecto en exceso)" },
+      "citric acid": { label: "Ácido Cítrico", unidad: "g/dm³", paso: 0.01, desc: "Aporta frescura y balance" },
+      "residual sugar": { label: "Azúcar Residual", unidad: "g/dm³", paso: 0.1, desc: "Dulzura natural remanente" },
+      "chlorides": { label: "Cloruros (Sal)", unidad: "g/dm³", paso: 0.001, desc: "Mineralidad y salinidad" },
+      "free sulfur dioxide": { label: "SO₂ Libre", unidad: "mg/dm³", paso: 1.0, desc: "Antioxidante activo" },
+      "total sulfur dioxide": { label: "SO₂ Total", unidad: "mg/dm³", paso: 1.0, desc: "Dióxido de azufre total" },
+      "density": { label: "Densidad", unidad: "g/cm³", paso: 0.0005, desc: "Cuerpo y relación alcohol/azúcar" },
+      "pH": { label: "Nivel de pH", unidad: "pH", paso: 0.01, desc: "Equilibrio ácido del vino" },
+      "sulphates": { label: "Sulfatos", unidad: "g/dm³", paso: 0.01, desc: "Potenciador antimicrobiano" },
+      "alcohol": { label: "Alcohol", unidad: "% vol", paso: 0.1, desc: "Graduación y estructura" }
+    };
+    // =========================================================================
+
+    let infoInicialGlobal = null;
+    let perfilesPredefinidosGlobal = {};
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      lucide.createIcons();
+      await cargarInfoInicial();
+      await cargarTablaReglas();
+      ejecutarClasificacion();
+    });
+
+    async function cargarInfoInicial() {
+      try {
+        const resp = await fetch("/api/info-inicial");
+        infoInicialGlobal = await resp.json();
+        perfilesPredefinidosGlobal = infoInicialGlobal.perfiles;
+        renderizarGruposVariables(infoInicialGlobal.variables, infoInicialGlobal.rangos);
+      } catch (err) {
+        console.error("Error al cargar metadatos:", err);
+      }
+    }
+
+    function renderizarGruposVariables(variables, rangos) {
+      const container = document.getElementById("sliders-container");
+      container.innerHTML = "";
+
+      const valoresDefault = perfilesPredefinidosGlobal["Vino Gran Reserva (Alta Calidad)"] || {};
+
+      GRUPOS_VARIABLES.forEach(grupo => {
+        const groupCard = document.createElement("div");
+        groupCard.className = "p-4 rounded-xl bg-zinc-900 border border-zinc-800 space-y-3.5";
+        
+        let slidersHtml = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
+
+        grupo.variables.forEach(varName => {
+          if (!variables.includes(varName)) return;
+          const meta = METADATOS_VARIABLES[varName] || { label: varName, unidad: "", paso: 0.1, desc: "" };
+          const [minVal, maxVal] = rangos[varName] || [0, 10];
+          const valActual = valoresDefault[varName] !== undefined ? valoresDefault[varName] : (minVal + maxVal) / 2;
+
+          slidersHtml += `
+            <div class="p-3 rounded-lg bg-zinc-950 border border-zinc-800 space-y-2 hover:border-zinc-700 transition-all">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-xs font-bold text-zinc-100">${meta.label}</span>
+                  <span class="text-[11px] text-zinc-400 block">${meta.desc}</span>
+                </div>
+                <div class="flex items-center gap-1.5 font-mono text-xs">
+                  <input type="number" id="num-${varName}" value="${valActual}" min="${minVal}" max="${maxVal}" step="${meta.paso}" 
+                         class="w-20 px-2 py-1 rounded bg-zinc-900 border border-zinc-700 text-amber-400 font-bold text-right text-xs focus:ring-1 focus:ring-amber-500 focus:outline-none"
+                         oninput="sincronizarInput('${varName}', this.value, 'slider')">
+                  <span class="text-xs font-semibold text-zinc-200 bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700">${meta.unidad}</span>
+                </div>
+              </div>
+              <input type="range" id="slider-${varName}" min="${minVal}" max="${maxVal}" step="${meta.paso}" value="${valActual}"
+                     class="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer"
+                     oninput="sincronizarInput('${varName}', this.value, 'num')">
+            </div>
+          `;
+        });
+
+        slidersHtml += `</div>`;
+
+        groupCard.innerHTML = `
+          <div class="flex items-center gap-2 border-b border-zinc-800 pb-2">
+            <i data-lucide="${grupo.icono}" class="w-4 h-4 ${grupo.color}"></i>
+            <h4 class="text-xs font-extrabold uppercase tracking-wide text-zinc-200">${grupo.titulo}</h4>
+          </div>
+          ${slidersHtml}
+        `;
+
+        container.appendChild(groupCard);
+      });
+
+      lucide.createIcons();
+    }
+
+    function sincronizarInput(varName, valor, objetivo) {
+      if (objetivo === 'slider') {
+        const slider = document.getElementById(`slider-${varName}`);
+        if (slider) slider.value = valor;
+      } else {
+        const num = document.getElementById(`num-${varName}`);
+        if (num) num.value = valor;
+      }
+      ejecutarClasificacion();
+    }
+
+    function cargarPreset(nombrePreset) {
+      const preset = perfilesPredefinidosGlobal[nombrePreset];
+      if (!preset) return;
+
+      for (const [varName, val] of Object.entries(preset)) {
+        const slider = document.getElementById(`slider-${varName}`);
+        const num = document.getElementById(`num-${varName}`);
+        if (slider) slider.value = val;
+        if (num) num.value = val;
+      }
+      ejecutarClasificacion();
+    }
+
+    async function ejecutarClasificacion() {
+      if (!infoInicialGlobal) return;
+
+      const datos = {};
+      infoInicialGlobal.variables.forEach(v => {
+        const input = document.getElementById(`num-${v}`);
+        datos[v] = input ? parseFloat(input.value) : 0.0;
+      });
+
+      const inicioT = performance.now();
+      try {
+        const resp = await fetch("/api/clasificar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(datos)
+        });
+        const res = await resp.json();
+        const finT = performance.now();
+        document.getElementById("badge-tiempo").innerText = `⚡ ${(finT - inicioT).toFixed(1)} ms`;
+        renderizarResultado(res);
+      } catch (err) {
+        console.error("Error en clasificación:", err);
+      }
+    }
+
+    function renderizarResultado(res) {
+      const badgeClase = document.getElementById("badge-clase");
+      const labelCentroide = document.getElementById("label-centroide");
+      const pinCentroide = document.getElementById("pin-centroide");
+      const agujaCentroide = document.getElementById("aguja-centroide");
+      const textoExplicacion = document.getElementById("texto-explicacion");
+      const listaReglas = document.getElementById("lista-reglas-activas");
+      const badgeTotalActivas = document.getElementById("badge-total-activas");
+
+      const clase = res.clase_predicha;
+      const centroide = res.centroide;
+
+      labelCentroide.innerHTML = `${centroide.toFixed(2)} <span class="text-xs font-normal text-zinc-400">/ 10.0</span>`;
+      pinCentroide.innerText = centroide.toFixed(2);
+
+      // Posicionar aguja proporcionalmente (0.0 a 10.0 -> 0% a 100%)
+      const pct = Math.min(100, Math.max(0, (centroide / 10.0) * 100));
+      agujaCentroide.style.left = `${pct}%`;
+
+      // Estilización semántica y accesible con contraste verificado
+      const configEstilo = PALETA_CALIDAD[clase] || PALETA_CALIDAD["Media"];
+      badgeClase.className = configEstilo.badgeClass;
+      badgeClase.innerHTML = `<i data-lucide="${configEstilo.icon}" class="w-6 h-6 ${configEstilo.iconColor}"></i> CALIDAD ${clase.toUpperCase()}`;
+
+      if (clase === "Alta") {
+        confetti({ particleCount: 35, spread: 60, origin: { y: 0.6 } });
+      }
+
+      textoExplicacion.innerText = res.explicacion;
+      badgeTotalActivas.innerText = `${res.total_activadas} activas`;
+
+      // Renderizar lista accesible de reglas disparadas
+      listaReglas.innerHTML = "";
+      if (res.reglas_activadas.length === 0) {
+        listaReglas.innerHTML = `<p class="text-xs text-zinc-300 italic py-2">Ninguna regla difusa disparó significativamente. Se aplicó centroide neutral por defecto (5.80 -> Media).</p>`;
+      } else {
+        res.reglas_activadas.forEach(r => {
+          const badgeClass = r.consecuente === "Alta" ? "text-emerald-300 border-emerald-600 bg-zinc-900" :
+                             r.consecuente === "Media" ? "text-amber-300 border-amber-600 bg-zinc-900" :
+                             "text-rose-300 border-rose-600 bg-zinc-900";
+          const pctAlpha = (r.alpha * 100).toFixed(1);
+
+          const item = document.createElement("div");
+          item.className = "p-3 rounded-xl bg-zinc-900 border border-zinc-800 space-y-1.5 shadow-sm";
+          item.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-zinc-100 text-xs">Regla #${r.id_regla} <span class="text-[11px] text-zinc-400 font-normal">(${r.origen})</span></span>
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded text-[11px] font-bold border ${badgeClass}">→ ${r.consecuente}</span>
+                <span class="font-mono text-xs font-bold text-amber-400">α = ${pctAlpha}%</span>
+              </div>
+            </div>
+            <p class="text-xs text-zinc-300 font-mono leading-relaxed">${r.regla_difusa}</p>
+          `;
+          listaReglas.appendChild(item);
+        });
+      }
+
+      lucide.createIcons();
+    }
+
+    async function cargarTablaReglas() {
+      try {
+        const resp = await fetch("/api/reglas");
+        const reglas = await resp.json();
+        const tbody = document.getElementById("tabla-reglas-body");
+        tbody.innerHTML = "";
+
+        reglas.forEach(r => {
+          const colorClase = r.consecuente === "Alta" ? "text-emerald-300 font-bold" : 
+                             r.consecuente === "Media" ? "text-amber-400 font-bold" : 
+                             "text-rose-400 font-bold";
+          
+          const estadoBadge = r.activa 
+            ? `<span class="px-2.5 py-1 rounded bg-[#064e3b] text-[#a7f3d0] border border-[#10b981] text-xs font-bold shadow-sm">Activa</span>` 
+            : `<span class="px-2.5 py-1 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 text-xs font-medium">Podada AG</span>`;
+
+          const row = document.createElement("tr");
+          row.className = r.activa ? "hover:bg-zinc-800/80 bg-zinc-900/60 transition-colors" : "bg-zinc-950/80 hover:bg-zinc-900/40 text-zinc-400 transition-colors";
+          row.innerHTML = `
+            <td class="py-3 px-3 font-bold text-zinc-200">${r.id_regla}</td>
+            <td class="py-3 px-3 text-zinc-300 font-semibold">${r.origen}</td>
+            <td class="py-3 px-4 text-zinc-200 text-xs">${r.regla_difusa_texto}</td>
+            <td class="py-3 px-3 ${colorClase}">${r.consecuente}</td>
+            <td class="py-3 px-3 text-zinc-200">${(r.confianza * 100).toFixed(1)}%</td>
+            <td class="py-3 px-3 text-zinc-200">${r.lift.toFixed(2)}</td>
+            <td class="py-3 px-3 font-bold text-amber-400">${r.peso.toFixed(2)}</td>
+            <td class="py-3 px-3 text-center">${estadoBadge}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (err) {
+        console.error("Error cargando tabla de reglas:", err);
+      }
+    }
+
+    function cambiarTab(tabId) {
+      document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.remove("bg-zinc-100", "text-zinc-950", "shadow-sm", "font-bold");
+        btn.classList.add("text-zinc-300");
+      });
+
+      const sec = document.getElementById(`sec-${tabId}`);
+      const btn = document.getElementById(`tab-${tabId}`);
+      if (sec) sec.classList.remove("hidden");
+      if (btn) {
+        btn.classList.add("bg-zinc-100", "text-zinc-950", "shadow-sm", "font-bold");
+        btn.classList.remove("text-zinc-300");
+      }
+      lucide.createIcons();
+    }
+  </script>
+</body>
+</html>

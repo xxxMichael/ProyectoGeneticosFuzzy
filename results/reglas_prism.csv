@@ -1,0 +1,17 @@
+id_regla,antecedentes,consecuente,precision,cobertura_relativa,cobertura_absoluta,instancias_correctas,num_condiciones,regla_texto
+1,alcohol = Alto AND volatile acidity = Bajo AND total sulfur dioxide = Bajo AND sulphates = Alto,Alta,0.717,0.0414,53,38,4,SI alcohol = Alto Y volatile acidity = Bajo Y total sulfur dioxide = Bajo Y sulphates = Alto ENTONCES calidad = Alta
+2,alcohol = Alto AND volatile acidity = Bajo AND total sulfur dioxide = Medio AND residual sugar = Alto,Alta,0.6522,0.018,23,15,4,SI alcohol = Alto Y volatile acidity = Bajo Y total sulfur dioxide = Medio Y residual sugar = Alto ENTONCES calidad = Alta
+3,alcohol = Bajo,Baja,0.7123,0.3425,438,312,1,SI alcohol = Bajo ENTONCES calidad = Baja
+4,volatile acidity = Alto AND alcohol = Medio,Baja,0.6507,0.1142,146,95,2,SI volatile acidity = Alto Y alcohol = Medio ENTONCES calidad = Baja
+5,sulphates = Bajo AND residual sugar = Alto AND total sulfur dioxide = Bajo,Baja,0.8261,0.036,46,38,3,SI sulphates = Bajo Y residual sugar = Alto Y total sulfur dioxide = Bajo ENTONCES calidad = Baja
+6,alcohol = Alto AND free sulfur dioxide = Alto,Media,0.6179,0.0962,123,76,2,SI alcohol = Alto Y free sulfur dioxide = Alto ENTONCES calidad = Media
+7,sulphates = Medio AND density = Bajo AND free sulfur dioxide = Medio,Media,0.75,0.0407,52,39,3,SI sulphates = Medio Y density = Bajo Y free sulfur dioxide = Medio ENTONCES calidad = Media
+8,alcohol = Medio AND volatile acidity = Medio AND pH = Bajo,Media,0.625,0.0375,48,30,3,SI alcohol = Medio Y volatile acidity = Medio Y pH = Bajo ENTONCES calidad = Media
+9,alcohol = Medio AND volatile acidity = Bajo AND citric acid = Bajo,Media,0.7143,0.0055,7,5,3,SI alcohol = Medio Y volatile acidity = Bajo Y citric acid = Bajo ENTONCES calidad = Media
+10,alcohol = Medio AND volatile acidity = Bajo AND chlorides = Medio,Media,0.6452,0.0242,31,20,3,SI alcohol = Medio Y volatile acidity = Bajo Y chlorides = Medio ENTONCES calidad = Media
+11,pH = Medio AND total sulfur dioxide = Medio AND citric acid = Bajo,Media,0.6667,0.0375,48,32,3,SI pH = Medio Y total sulfur dioxide = Medio Y citric acid = Bajo ENTONCES calidad = Media
+12,total sulfur dioxide = Bajo AND sulphates = Medio AND density = Alto,Media,0.6757,0.0289,37,25,3,SI total sulfur dioxide = Bajo Y sulphates = Medio Y density = Alto ENTONCES calidad = Media
+13,sulphates = Alto AND volatile acidity = Medio AND chlorides = Medio,Media,0.8182,0.0172,22,18,3,SI sulphates = Alto Y volatile acidity = Medio Y chlorides = Medio ENTONCES calidad = Media
+14,volatile acidity = Bajo AND density = Medio AND residual sugar = Bajo AND alcohol = Alto,Media,0.8889,0.007,9,8,4,SI volatile acidity = Bajo Y density = Medio Y residual sugar = Bajo Y alcohol = Alto ENTONCES calidad = Media
+15,alcohol = Medio AND volatile acidity = Bajo AND pH = Medio AND residual sugar = Alto,Media,0.8333,0.0094,12,10,4,SI alcohol = Medio Y volatile acidity = Bajo Y pH = Medio Y residual sugar = Alto ENTONCES calidad = Media
+16,total sulfur dioxide = Bajo AND sulphates = Alto AND fixed acidity = Bajo,Media,0.6522,0.018,23,15,3,SI total sulfur dioxide = Bajo Y sulphates = Alto Y fixed acidity = Bajo ENTONCES calidad = Media

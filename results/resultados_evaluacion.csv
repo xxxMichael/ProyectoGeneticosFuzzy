@@ -1,0 +1,7 @@
+Fase,Particion,Exactitud (%),Precision Macro,Precision Weighted,Recall Macro,Recall Weighted,F1-Score Macro,F1-Score Weighted,Cobertura (%),Reglas Activas,Reglas Totales
+Fase 1 (Baseline - Reglas Discretas),Entrenamiento (Train),63.41,0.6695,0.6527,0.5499,0.6341,0.5704,0.6256,79.2,26,26
+Fase 1 (Baseline - Reglas Discretas),Prueba (Test),57.5,0.5192,0.5657,0.4678,0.575,0.4674,0.5581,79.69,26,26
+Fase 2 (Pre-GA - Difuso Inicial),Entrenamiento (Train),58.64,0.5538,0.5743,0.5441,0.5864,0.5283,0.5544,96.33,26,26
+Fase 2 (Pre-GA - Difuso Inicial),Prueba (Test),55.94,0.4977,0.5355,0.4964,0.5594,0.4804,0.5263,98.44,26,26
+Fase 3 (Post-GA - Difuso Optimizado),Entrenamiento (Train),62.55,0.6156,0.6356,0.6033,0.6255,0.6072,0.6278,99.22,16,26
+Fase 3 (Post-GA - Difuso Optimizado),Prueba (Test),60.31,0.5672,0.6111,0.5641,0.6031,0.5647,0.6059,99.38,16,26

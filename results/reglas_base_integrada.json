@@ -1,0 +1,470 @@
+[
+  {
+    "id_regla": 1,
+    "origen": "PRISM",
+    "antecedentes": {
+      "alcohol": "Alto",
+      "volatile acidity": "Bajo",
+      "total sulfur dioxide": "Bajo",
+      "sulphates": "Alto"
+    },
+    "consecuente": "Alta",
+    "precision": 0.717,
+    "confianza": 0.717,
+    "soporte_cobertura": 0.0414,
+    "lift": 1.5,
+    "num_condiciones": 4,
+    "regla_texto": "SI alcohol = Alto Y volatile acidity = Bajo Y total sulfur dioxide = Bajo Y sulphates = Alto ENTONCES calidad = Alta",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 2,
+    "origen": "PRISM",
+    "antecedentes": {
+      "alcohol": "Alto",
+      "volatile acidity": "Bajo",
+      "total sulfur dioxide": "Medio",
+      "residual sugar": "Alto"
+    },
+    "consecuente": "Alta",
+    "precision": 0.6522,
+    "confianza": 0.6522,
+    "soporte_cobertura": 0.018,
+    "lift": 1.5,
+    "num_condiciones": 4,
+    "regla_texto": "SI alcohol = Alto Y volatile acidity = Bajo Y total sulfur dioxide = Medio Y residual sugar = Alto ENTONCES calidad = Alta",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 3,
+    "origen": "PRISM",
+    "antecedentes": {
+      "alcohol": "Bajo"
+    },
+    "consecuente": "Baja",
+    "precision": 0.7123,
+    "confianza": 0.7123,
+    "soporte_cobertura": 0.3425,
+    "lift": 1.5,
+    "num_condiciones": 1,
+    "regla_texto": "SI alcohol = Bajo ENTONCES calidad = Baja",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 4,
+    "origen": "PRISM",
+    "antecedentes": {
+      "volatile acidity": "Alto",
+      "alcohol": "Medio"
+    },
+    "consecuente": "Baja",
+    "precision": 0.6507,
+    "confianza": 0.6507,
+    "soporte_cobertura": 0.1142,
+    "lift": 1.5,
+    "num_condiciones": 2,
+    "regla_texto": "SI volatile acidity = Alto Y alcohol = Medio ENTONCES calidad = Baja",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 5,
+    "origen": "PRISM",
+    "antecedentes": {
+      "sulphates": "Bajo",
+      "residual sugar": "Alto",
+      "total sulfur dioxide": "Bajo"
+    },
+    "consecuente": "Baja",
+    "precision": 0.8261,
+    "confianza": 0.8261,
+    "soporte_cobertura": 0.036,
+    "lift": 1.5,
+    "num_condiciones": 3,
+    "regla_texto": "SI sulphates = Bajo Y residual sugar = Alto Y total sulfur dioxide = Bajo ENTONCES calidad = Baja",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 6,
+    "origen": "PRISM",
+    "antecedentes": {
+      "alcohol": "Alto",
+      "free sulfur dioxide": "Alto"
+    },
+    "consecuente": "Media",
+    "precision": 0.6179,
+    "confianza": 0.6179,
+    "soporte_cobertura": 0.0962,
+    "lift": 1.5,
+    "num_condiciones": 2,
+    "regla_texto": "SI alcohol = Alto Y free sulfur dioxide = Alto ENTONCES calidad = Media",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 7,
+    "origen": "PRISM",
+    "antecedentes": {
+      "sulphates": "Medio",
+      "density": "Bajo",
+      "free sulfur dioxide": "Medio"
+    },
+    "consecuente": "Media",
+    "precision": 0.75,
+    "confianza": 0.75,
+    "soporte_cobertura": 0.0407,
+    "lift": 1.5,
+    "num_condiciones": 3,
+    "regla_texto": "SI sulphates = Medio Y density = Bajo Y free sulfur dioxide = Medio ENTONCES calidad = Media",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 8,
+    "origen": "PRISM",
+    "antecedentes": {
+      "alcohol": "Medio",
+      "volatile acidity": "Medio",
+      "pH": "Bajo"
+    },
+    "consecuente": "Media",
+    "precision": 0.625,
+    "confianza": 0.625,
+    "soporte_cobertura": 0.0375,
+    "lift": 1.5,
+    "num_condiciones": 3,
+    "regla_texto": "SI alcohol = Medio Y volatile acidity = Medio Y pH = Bajo ENTONCES calidad = Media",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 9,
+    "origen": "PRISM",
+    "antecedentes": {
+      "alcohol": "Medio",
+      "volatile acidity": "Bajo",
+      "citric acid": "Bajo"
+    },
+    "consecuente": "Media",
+    "precision": 0.7143,
+    "confianza": 0.7143,
+    "soporte_cobertura": 0.0055,
+    "lift": 1.5,
+    "num_condiciones": 3,
+    "regla_texto": "SI alcohol = Medio Y volatile acidity = Bajo Y citric acid = Bajo ENTONCES calidad = Media",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 10,
+    "origen": "PRISM",
+    "antecedentes": {
+      "alcohol": "Medio",
+      "volatile acidity": "Bajo",
+      "chlorides": "Medio"
+    },
+    "consecuente": "Media",
+    "precision": 0.6452,
+    "confianza": 0.6452,
+    "soporte_cobertura": 0.0242,
+    "lift": 1.5,
+    "num_condiciones": 3,
+    "regla_texto": "SI alcohol = Medio Y volatile acidity = Bajo Y chlorides = Medio ENTONCES calidad = Media",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 11,
+    "origen": "PRISM",
+    "antecedentes": {
+      "pH": "Medio",
+      "total sulfur dioxide": "Medio",
+      "citric acid": "Bajo"
+    },
+    "consecuente": "Media",
+    "precision": 0.6667,
+    "confianza": 0.6667,
+    "soporte_cobertura": 0.0375,
+    "lift": 1.5,
+    "num_condiciones": 3,
+    "regla_texto": "SI pH = Medio Y total sulfur dioxide = Medio Y citric acid = Bajo ENTONCES calidad = Media",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 12,
+    "origen": "PRISM",
+    "antecedentes": {
+      "total sulfur dioxide": "Bajo",
+      "sulphates": "Medio",
+      "density": "Alto"
+    },
+    "consecuente": "Media",
+    "precision": 0.6757,
+    "confianza": 0.6757,
+    "soporte_cobertura": 0.0289,
+    "lift": 1.5,
+    "num_condiciones": 3,
+    "regla_texto": "SI total sulfur dioxide = Bajo Y sulphates = Medio Y density = Alto ENTONCES calidad = Media",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 13,
+    "origen": "PRISM",
+    "antecedentes": {
+      "sulphates": "Alto",
+      "volatile acidity": "Medio",
+      "chlorides": "Medio"
+    },
+    "consecuente": "Media",
+    "precision": 0.8182,
+    "confianza": 0.8182,
+    "soporte_cobertura": 0.0172,
+    "lift": 1.5,
+    "num_condiciones": 3,
+    "regla_texto": "SI sulphates = Alto Y volatile acidity = Medio Y chlorides = Medio ENTONCES calidad = Media",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 14,
+    "origen": "PRISM",
+    "antecedentes": {
+      "volatile acidity": "Bajo",
+      "density": "Medio",
+      "residual sugar": "Bajo",
+      "alcohol": "Alto"
+    },
+    "consecuente": "Media",
+    "precision": 0.8889,
+    "confianza": 0.8889,
+    "soporte_cobertura": 0.007,
+    "lift": 1.5,
+    "num_condiciones": 4,
+    "regla_texto": "SI volatile acidity = Bajo Y density = Medio Y residual sugar = Bajo Y alcohol = Alto ENTONCES calidad = Media",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 15,
+    "origen": "PRISM",
+    "antecedentes": {
+      "alcohol": "Medio",
+      "volatile acidity": "Bajo",
+      "pH": "Medio",
+      "residual sugar": "Alto"
+    },
+    "consecuente": "Media",
+    "precision": 0.8333,
+    "confianza": 0.8333,
+    "soporte_cobertura": 0.0094,
+    "lift": 1.5,
+    "num_condiciones": 4,
+    "regla_texto": "SI alcohol = Medio Y volatile acidity = Bajo Y pH = Medio Y residual sugar = Alto ENTONCES calidad = Media",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 16,
+    "origen": "PRISM",
+    "antecedentes": {
+      "total sulfur dioxide": "Bajo",
+      "sulphates": "Alto",
+      "fixed acidity": "Bajo"
+    },
+    "consecuente": "Media",
+    "precision": 0.6522,
+    "confianza": 0.6522,
+    "soporte_cobertura": 0.018,
+    "lift": 1.5,
+    "num_condiciones": 3,
+    "regla_texto": "SI total sulfur dioxide = Bajo Y sulphates = Alto Y fixed acidity = Bajo ENTONCES calidad = Media",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 17,
+    "origen": "Apriori",
+    "antecedentes": {
+      "free sulfur dioxide": "Alto",
+      "pH": "Bajo",
+      "volatile acidity": "Alto"
+    },
+    "consecuente": "Baja",
+    "precision": 0.9474,
+    "confianza": 0.9474,
+    "soporte_cobertura": 0.0281,
+    "lift": 2.0364,
+    "num_condiciones": 3,
+    "regla_texto": "SI free sulfur dioxide=Alto Y pH=Bajo Y volatile acidity=Alto ENTONCES calidad_categoria=Baja",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 18,
+    "origen": "Apriori",
+    "antecedentes": {
+      "fixed acidity": "Alto",
+      "sulphates": "Bajo",
+      "total sulfur dioxide": "Alto"
+    },
+    "consecuente": "Baja",
+    "precision": 0.9333,
+    "confianza": 0.9333,
+    "soporte_cobertura": 0.0219,
+    "lift": 2.0063,
+    "num_condiciones": 3,
+    "regla_texto": "SI fixed acidity=Alto Y sulphates=Bajo Y total sulfur dioxide=Alto ENTONCES calidad_categoria=Baja",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 19,
+    "origen": "Apriori",
+    "antecedentes": {
+      "fixed acidity": "Alto",
+      "free sulfur dioxide": "Alto",
+      "sulphates": "Bajo"
+    },
+    "consecuente": "Baja",
+    "precision": 0.9286,
+    "confianza": 0.9286,
+    "soporte_cobertura": 0.0203,
+    "lift": 1.996,
+    "num_condiciones": 3,
+    "regla_texto": "SI fixed acidity=Alto Y free sulfur dioxide=Alto Y sulphates=Bajo ENTONCES calidad_categoria=Baja",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 20,
+    "origen": "Apriori",
+    "antecedentes": {
+      "alcohol": "Bajo",
+      "density": "Bajo",
+      "residual sugar": "Bajo"
+    },
+    "consecuente": "Baja",
+    "precision": 0.9268,
+    "confianza": 0.9268,
+    "soporte_cobertura": 0.0297,
+    "lift": 1.9923,
+    "num_condiciones": 3,
+    "regla_texto": "SI alcohol=Bajo Y density=Bajo Y residual sugar=Bajo ENTONCES calidad_categoria=Baja",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 21,
+    "origen": "Apriori",
+    "antecedentes": {
+      "alcohol": "Bajo",
+      "sulphates": "Bajo",
+      "total sulfur dioxide": "Bajo"
+    },
+    "consecuente": "Baja",
+    "precision": 0.9231,
+    "confianza": 0.9231,
+    "soporte_cobertura": 0.0375,
+    "lift": 1.9842,
+    "num_condiciones": 3,
+    "regla_texto": "SI alcohol=Bajo Y sulphates=Bajo Y total sulfur dioxide=Bajo ENTONCES calidad_categoria=Baja",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 22,
+    "origen": "Apriori",
+    "antecedentes": {
+      "density": "Bajo",
+      "sulphates": "Medio",
+      "total sulfur dioxide": "Medio"
+    },
+    "consecuente": "Media",
+    "precision": 0.775,
+    "confianza": 0.775,
+    "soporte_cobertura": 0.0242,
+    "lift": 1.9436,
+    "num_condiciones": 3,
+    "regla_texto": "SI density=Bajo Y sulphates=Medio Y total sulfur dioxide=Medio ENTONCES calidad_categoria=Media",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 23,
+    "origen": "Apriori",
+    "antecedentes": {
+      "chlorides": "Medio",
+      "density": "Bajo",
+      "residual sugar": "Medio"
+    },
+    "consecuente": "Media",
+    "precision": 0.7647,
+    "confianza": 0.7647,
+    "soporte_cobertura": 0.0203,
+    "lift": 1.9178,
+    "num_condiciones": 3,
+    "regla_texto": "SI chlorides=Medio Y density=Bajo Y residual sugar=Medio ENTONCES calidad_categoria=Media",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 24,
+    "origen": "Apriori",
+    "antecedentes": {
+      "alcohol": "Alto",
+      "free sulfur dioxide": "Medio",
+      "sulphates": "Medio"
+    },
+    "consecuente": "Media",
+    "precision": 0.7451,
+    "confianza": 0.7451,
+    "soporte_cobertura": 0.0297,
+    "lift": 1.8686,
+    "num_condiciones": 3,
+    "regla_texto": "SI alcohol=Alto Y free sulfur dioxide=Medio Y sulphates=Medio ENTONCES calidad_categoria=Media",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 25,
+    "origen": "Apriori",
+    "antecedentes": {
+      "alcohol": "Alto",
+      "fixed acidity": "Medio",
+      "free sulfur dioxide": "Alto"
+    },
+    "consecuente": "Media",
+    "precision": 0.7436,
+    "confianza": 0.7436,
+    "soporte_cobertura": 0.0227,
+    "lift": 1.8648,
+    "num_condiciones": 3,
+    "regla_texto": "SI alcohol=Alto Y fixed acidity=Medio Y free sulfur dioxide=Alto ENTONCES calidad_categoria=Media",
+    "peso": 1.0,
+    "activa": true
+  },
+  {
+    "id_regla": 26,
+    "origen": "Apriori",
+    "antecedentes": {
+      "alcohol": "Alto",
+      "sulphates": "Medio",
+      "total sulfur dioxide": "Medio"
+    },
+    "consecuente": "Media",
+    "precision": 0.7368,
+    "confianza": 0.7368,
+    "soporte_cobertura": 0.0219,
+    "lift": 1.8479,
+    "num_condiciones": 3,
+    "regla_texto": "SI alcohol=Alto Y sulphates=Medio Y total sulfur dioxide=Medio ENTONCES calidad_categoria=Media",
+    "peso": 1.0,
+    "activa": true
+  }
+]
