@@ -16,6 +16,8 @@ DIRECTORIO_BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, DIRECTORIO_BASE)
 
 from src.carga_datos import cargar_dataset
+from src.datos.preparacion.discretizacion import preparar_conjuntos_entrenamiento_prueba
+from src.genetico.genetico import OptimizadorGeneticoFuzzy
 from src.fuzzy import (
     ConfiguracionMFs,
     SistemaDifusoMamdani,
@@ -89,6 +91,8 @@ PERFILES_PREDEFINIDOS: Dict[str, Dict[str, float]] = {
 # =============================================================================
 
 app = Flask(__name__, template_folder=RUTA_TEMPLATES)
+app.config["TEMPLATES_AUTO_RELOAD"] = True
+app.jinja_env.auto_reload = True
 
 
 def inicializar_sistema_difuso() -> Tuple[SistemaDifusoMamdani, List[ReglaUnificada], ConfiguracionMFs]:
@@ -119,6 +123,14 @@ def inicializar_sistema_difuso() -> Tuple[SistemaDifusoMamdani, List[ReglaUnific
 
 # Inicializar instancia global
 SISTEMA_DIFUSO_GLOBAL, REGLAS_GLOBALES, CONFIG_MFS_GLOBAL = inicializar_sistema_difuso()
+
+PARAMS_MFS_INICIALES: Dict[str, List[float]] = {}
+if os.path.exists(RUTA_PARAMS_MFS_INI):
+    try:
+        with open(RUTA_PARAMS_MFS_INI, "r", encoding="utf-8") as f:
+            PARAMS_MFS_INICIALES = json.load(f)
+    except Exception as e:
+        print(f"Advertencia al cargar MFs iniciales: {e}")
 
 
 @app.route("/")
@@ -163,6 +175,83 @@ def api_convergencia():
         df_conv = pd.read_csv(RUTA_CONVERGENCIA_CSV)
         return jsonify(df_conv.to_dict(orient="records"))
     return jsonify([])
+
+
+DATOS_TRAIN_CACHE = None
+
+
+@app.route("/api/ejecutar-ga-micro", methods=["POST"])
+def api_ejecutar_ga_micro():
+    """
+    Ejecuta una micro-optimización genética interactiva en vivo usando DEAP.
+    Permite al usuario experimentar con diferentes hiperparámetros y ver la convergencia en tiempo real.
+    """
+    global DATOS_TRAIN_CACHE
+    datos = request.get_json(silent=True) or {}
+
+    num_gen = min(15, max(2, int(datos.get("generaciones", 4))))
+    tam_pob = min(25, max(6, int(datos.get("poblacion", 10))))
+    prob_cruce = float(datos.get("prob_cruce", 0.85))
+    prob_mutacion = float(datos.get("prob_mutacion", 0.25))
+    peso_f1 = float(datos.get("peso_f1", 0.70))
+    peso_cob = float(datos.get("peso_cobertura", 0.20))
+    peso_poda = float(datos.get("peso_penalizacion", 0.10))
+
+    try:
+        if DATOS_TRAIN_CACHE is None:
+            df = cargar_dataset()
+            part = preparar_conjuntos_entrenamiento_prueba(df)
+            DATOS_TRAIN_CACHE = (part["X_train_num"], part["y_train_cat"])
+
+        X_tr, y_tr = DATOS_TRAIN_CACHE
+
+        opt = OptimizadorGeneticoFuzzy(
+            X_train=X_tr,
+            y_train=y_tr,
+            reglas_base=REGLAS_GLOBALES,
+            peso_f1=peso_f1,
+            peso_cobertura=peso_cob,
+            peso_penalizacion=peso_poda,
+        )
+
+        res = opt.optimizar(
+            num_generaciones=num_gen,
+            tamano_poblacion=tam_pob,
+            prob_cruce=prob_cruce,
+            prob_mutacion=prob_mutacion,
+            verbose=False,
+        )
+
+        historial = []
+        for p in res["historial_progreso"]:
+            historial.append({
+                "generacion": int(p["generacion"]),
+                "mejor_fitness": round(float(p["mejor_fitness"]), 4),
+                "fitness_promedio": round(float(p["fitness_promedio"]), 4),
+                "f1_macro": round(float(p["f1_macro"]), 4),
+                "cobertura": round(float(p["cobertura"]) * 100, 2),
+                "reglas_activas": int(p["reglas_activas"]),
+                "tiempo_seg": round(float(p["tiempo_seg"]), 2),
+            })
+
+        return jsonify({
+            "status": "success",
+            "parametros": {
+                "generaciones": num_gen,
+                "poblacion": tam_pob,
+                "prob_cruce": prob_cruce,
+                "prob_mutacion": prob_mutacion,
+                "pesos": {"f1": peso_f1, "cobertura": peso_cob, "poda": peso_poda},
+            },
+            "mejor_fitness": round(float(res["mejor_fitness"]), 4),
+            "f1_macro": round(float(res["metricas_train"]["f1_macro"]), 4),
+            "cobertura": round(float(res["metricas_train"]["cobertura"]) * 100, 2),
+            "reglas_activas": int(res["metricas_train"]["reglas_activas"]),
+            "tiempo_total_seg": round(float(res["tiempo_total_seg"]), 2),
+            "historial": historial,
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "mensaje": str(e)}), 500
 
 
 @app.route("/api/reglas", methods=["GET"])
@@ -301,6 +390,167 @@ def _generar_explicacion_enologica(
         f"El sistema clasificó este vino como de CALIDAD {clase.upper()} con un centroide Mamdani de {centroide:.2f}/10.0. "
         f"{texto_just} {texto_reglas}"
     )
+
+
+@app.route("/fuzzy-explorer")
+def fuzzy_explorer():
+    """Vista dedicada: Visualizador Pedagógico de Lógica Difusa Mamdani en Acción (XAI)."""
+    return render_template("fuzzy_explorer.html")
+
+
+@app.route("/api/fuzzy-explorer-data", methods=["GET", "POST"])
+def api_fuzzy_explorer_data():
+    """
+    Devuelve la descomposición matemática completa de la inferencia difusa:
+    - Puntos de corte (a, b, c) y pertenencias de cada una de las 11 variables.
+    - Cuello de botella (mínimo) y fuerza de disparo para cada regla activa.
+    - Polígono de defuzzificación continua recortado (Mamdani MAX) y centroide CoG.
+    """
+    if request.method == "POST":
+        datos = request.get_json(silent=True) or {}
+    else:
+        datos = {}
+
+    muestra: Dict[str, float] = {}
+    for var in VARIABLES_FISICOQUIMICAS:
+        var_underscore = var.replace(" ", "_")
+        if var in datos:
+            muestra[var] = float(datos[var])
+        elif var_underscore in datos:
+            muestra[var] = float(datos[var_underscore])
+        else:
+            min_v, max_v = RANGOS_VARIABLES_DEFAULT.get(var, (0.0, 10.0))
+            muestra[var] = round((min_v + max_v) / 2.0, 3)
+
+    pertenencias = SISTEMA_DIFUSO_GLOBAL.fuzzificar_muestra(muestra)
+    activaciones = SISTEMA_DIFUSO_GLOBAL.evaluar_activaciones_reglas(pertenencias)
+    mu_agregado, max_por_clase = SISTEMA_DIFUSO_GLOBAL.agregar_salida_difusa(activaciones)
+    centroide = SISTEMA_DIFUSO_GLOBAL.defuzzificar_centroide(mu_agregado)
+    clase_predicha = SISTEMA_DIFUSO_GLOBAL.clasificar_centroide(centroide)
+
+    # Mapeo de unidades para UI
+    unidades_map = {
+        "fixed acidity": "g/dm³",
+        "volatile acidity": "g/dm³",
+        "citric acid": "g/dm³",
+        "residual sugar": "g/dm³",
+        "chlorides": "g/dm³",
+        "free sulfur dioxide": "mg/dm³",
+        "total sulfur dioxide": "mg/dm³",
+        "density": "g/cm³",
+        "pH": "pH",
+        "sulphates": "g/dm³",
+        "alcohol": "% vol",
+    }
+
+    variables_info = {}
+    for var in VARIABLES_FISICOQUIMICAS:
+        min_v, max_v = RANGOS_VARIABLES_DEFAULT[var]
+        a, b, c = CONFIG_MFS_GLOBAL.parametros[var]
+        cortes_ini = PARAMS_MFS_INICIALES.get(var, [a, b, c])
+        val = muestra[var]
+        mu_b = pertenencias[var].get("Bajo", 0.0)
+        mu_m = pertenencias[var].get("Medio", 0.0)
+        mu_a = pertenencias[var].get("Alto", 0.0)
+        variables_info[var] = {
+            "nombre": var,
+            "unidad": unidades_map.get(var, ""),
+            "min": min_v,
+            "max": max_v,
+            "cortes": [round(a, 4), round(b, 4), round(c, 4)],
+            "puntos_corte": {"a": round(a, 4), "b": round(b, 4), "c": round(c, 4)},
+            "cortes_iniciales": [round(cortes_ini[0], 4), round(cortes_ini[1], 4), round(cortes_ini[2], 4)],
+            "puntos_corte_iniciales": {
+                "a": round(cortes_ini[0], 4),
+                "b": round(cortes_ini[1], 4),
+                "c": round(cortes_ini[2], 4),
+            },
+            "valor_actual": round(val, 4),
+            "pertenencias": {
+                "Bajo": round(mu_b, 4),
+                "Medio": round(mu_m, 4),
+                "Alto": round(mu_a, 4),
+            },
+        }
+
+    # Desglose de Reglas (Matriz completa de 26 reglas y lista de activas con Cuello de Botella)
+    matriz_26_reglas = []
+    for r in REGLAS_GLOBALES:
+        alpha = activaciones.get(r.id_regla, 0.0)
+        es_podada = (not r.activa) or (r.peso <= 0.0)
+        antecedentes_eval = []
+        min_mu = 1.0
+        cuello_botella_idx = -1
+
+        for idx, (v, etiqueta) in enumerate(r.antecedentes.items()):
+            mu_val = pertenencias[v].get(etiqueta, 0.0)
+            if mu_val < min_mu:
+                min_mu = mu_val
+                cuello_botella_idx = idx
+            antecedentes_eval.append({
+                "variable": v,
+                "etiqueta": etiqueta,
+                "mu": round(mu_val, 4),
+                "es_cuello_botella": False,
+            })
+
+        if 0 <= cuello_botella_idx < len(antecedentes_eval):
+            antecedentes_eval[cuello_botella_idx]["es_cuello_botella"] = True
+
+        matriz_26_reglas.append({
+            "id_regla": r.id_regla,
+            "origen": r.origen,
+            "consecuente": r.consecuente,
+            "peso": round(r.peso, 4),
+            "alpha": round(alpha, 4),
+            "activa": r.activa,
+            "podada": es_podada,
+            "cuello_botella_mu": round(min_mu, 4),
+            "antecedentes": antecedentes_eval,
+            "regla_texto": r.regla_texto,
+            "regla_difusa": r.a_texto_difuso(),
+        })
+
+    # Reglas activas para la lista jerárquica
+    reglas_detalle = [r for r in matriz_26_reglas if not r["podada"]]
+    reglas_detalle.sort(key=lambda x: x["alpha"], reverse=True)
+
+    # Ordenar matriz de 26 por ID
+    matriz_26_reglas_ordenada = sorted(matriz_26_reglas, key=lambda x: x["id_regla"])
+
+    # Defuzzificación y Polígono de Salida
+    universo = SISTEMA_DIFUSO_GLOBAL.universo_calidad.tolist()
+    corte_baja = np.minimum(max_por_clase.get("Baja", 0.0), SISTEMA_DIFUSO_GLOBAL.mf_salida_baja).tolist()
+    corte_media = np.minimum(max_por_clase.get("Media", 0.0), SISTEMA_DIFUSO_GLOBAL.mf_salida_media).tolist()
+    corte_alta = np.minimum(max_por_clase.get("Alta", 0.0), SISTEMA_DIFUSO_GLOBAL.mf_salida_alta).tolist()
+
+    return jsonify({
+        "variables": variables_info,
+        "muestra_actual": muestra,
+        "reglas": reglas_detalle,
+        "matriz_26_reglas": matriz_26_reglas_ordenada,
+        "total_reglas_activas": len([r for r in reglas_detalle if r["alpha"] > 0.005]),
+        "defuzzificacion": {
+            "universo": universo,
+            "mu_agregado": [round(float(v), 4) for v in mu_agregado],
+            "corte_baja": [round(float(v), 4) for v in corte_baja],
+            "corte_media": [round(float(v), 4) for v in corte_media],
+            "corte_alta": [round(float(v), 4) for v in corte_alta],
+            "alphas_clase": {k: round(float(v), 4) for k, v in max_por_clase.items()},
+            "centroide": round(float(centroide), 4),
+            "clase_predicha": clase_predicha,
+            "umbrales": {
+                "baja_media": SISTEMA_DIFUSO_GLOBAL.umbral_baja_media,
+                "media_alta": SISTEMA_DIFUSO_GLOBAL.umbral_media_alta,
+            },
+        },
+        "perfiles_predefinidos": {
+            "gran_reserva": PERFILES_PREDEFINIDOS["Vino Gran Reserva (Alta Calidad)"],
+            "vino_comercial": PERFILES_PREDEFINIDOS["Vino de Mesa Estándar (Calidad Media)"],
+            "vino_picado": PERFILES_PREDEFINIDOS["Vino Picado / Ácido (Calidad Baja)"],
+            "descriptivos": PERFILES_PREDEFINIDOS,
+        },
+    })
 
 
 def iniciar_servidor():
