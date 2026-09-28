@@ -9,6 +9,8 @@ __pycache__/
 *.so
 .Python
 .agent/
+.Informe_Latex/
+
 
 # --- Entornos Virtuales ---
 env/
