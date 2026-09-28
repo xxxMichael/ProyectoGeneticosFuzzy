@@ -19,7 +19,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-
+*.md
 # --- Paquetes y Distribución ---
 build/
 develop-eggs/
