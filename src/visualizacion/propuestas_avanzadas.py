@@ -14,7 +14,7 @@ diseñados para diferenciar radicalmente este proyecto de implementaciones está
 4. 04_poda_y_pesos_reglas_ga.png:
    Lollipop chart de pesos evolucionados y visualización de la zona de poda (38.5% reglas eliminadas).
 5. 05_espacio_reglas_prism_vs_apriori.png:
-   Frente Pareto Soporte vs. Confianza vs. Lift demostrando la complementariedad PRISM + Apriori.
+   Frente Pareto Soporte vs. Confianza vs. Lift evaluando la complementariedad PRISM + Apriori.
 6. 06_importancia_quimica_11_variables.png:
    Matriz de participación fisicoquímica de las 11 variables a lo largo de las reglas activas.
 """
@@ -309,7 +309,7 @@ def generar_distribucion_centroides():
     ax2.grid(color="#E2E8F0", linestyle=":", alpha=0.8)
     
     fig.suptitle(
-        "Verificación de Calibración Continua: Separación de Densidades por Clase Real\n(Demostración del Incremento en Capacidad de Discriminación del AG)",
+        "Verificación de Calibración Continua: Separación de Densidades por Clase Real\n(Incremento en Capacidad de Discriminación del AG)",
         fontsize=13,
         fontweight="bold",
         color=COLOR_TEXTO,
@@ -472,7 +472,7 @@ def generar_espacio_reglas_pareto():
     )
     
     ax.set_title(
-        "Espacio de Minería de Reglas: Demostración de Complementariedad PRISM vs. Apriori\n(Formación de un Frente de Pareto entre Cobertura Poblacional y Pureza Predictiva)",
+        "Espacio de Minería de Reglas: Análisis de Complementariedad PRISM vs. Apriori\n(Formación de un Frente de Pareto entre Cobertura Poblacional y Pureza Predictiva)",
         fontsize=13,
         fontweight="bold",
         color=COLOR_TEXTO,

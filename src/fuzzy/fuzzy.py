@@ -191,13 +191,20 @@ class SistemaDifusoMamdani:
         reglas: Optional[List[ReglaUnificada]] = None,
     ) -> Tuple[str, float, Dict[int, float]]:
         cfg, rgl = self._resolver_config_y_reglas(config_mfs, reglas)
+        # [FASE 1: FUZZIFICACIÓN]
+
         pertenencias = self.fuzzificar_muestra(muestra_num, cfg)
+
+        # [FASE 2: INFERENCIA]
         activaciones = self.evaluar_activaciones_reglas(pertenencias, rgl)
 
         if not activaciones:
             return self.clase_fallback, self.centroide_fallback, {}
 
+        # [FASE 3: AGREGACIÓN]
         mu_agregado, _ = self.agregar_salida_difusa(activaciones, rgl)
+
+        # [FASE 4: DEFUZZIFICACIÓN]
         centroide = self.defuzzificar_centroide(mu_agregado)
         clase_predicha = self.clasificar_centroide(centroide)
 

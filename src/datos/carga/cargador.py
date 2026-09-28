@@ -9,7 +9,7 @@ from typing import Optional, Tuple
 import pandas as pd
 
 # =============================================================================
-# CONFIGURACIÓN Y PARÁMETROS DE CARGA (EXPUESTOS PARA DEMOSTRACIÓN)
+# CONFIGURACIÓN Y PARÁMETROS DE CARGA
 # =============================================================================
 DIRECTORIO_BASE: str = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 RUTA_DATASET_DEFAULT: str = os.path.join(DIRECTORIO_BASE, "wine+quality", "winequality-red.csv")

@@ -46,7 +46,7 @@ RUTA_REGLAS_BASE: str = os.path.join(DIRECTORIO_BASE, "results", "reglas_base_in
 RUTA_EVALUACION_CSV: str = os.path.join(DIRECTORIO_BASE, "results", "resultados_evaluacion.csv")
 RUTA_CONVERGENCIA_CSV: str = os.path.join(DIRECTORIO_BASE, "results", "historial_convergencia_ga.csv")
 
-# Perfiles de Vino Predefinidos para Demostración Rápida
+# Perfiles de Vino Predefinidos de Prueba
 PERFILES_PREDEFINIDOS: Dict[str, Dict[str, float]] = {
     "Vino Gran Reserva (Alta Calidad)": {
         "fixed acidity": 8.5,
@@ -295,7 +295,7 @@ def api_clasificar():
     """
     Endpoint principal de inferencia difusa:
     Recibe las 11 variables fisicoquímicas continuas, calcula los grados de activación,
-    ejecuta la defuzzificación Mamdani por Centroide y devuelve la explicación de la calidad.
+    ejecuta la defuzzificación Mamdani por Centroide y devuelve la interpretación enológica de la calidad.
     """
     datos = request.get_json(force=True)
     if not datos:
@@ -335,7 +335,7 @@ def api_clasificar():
 
     detalles_reglas.sort(key=lambda x: x["alpha"], reverse=True)
 
-    # 4. Generación de Explicación en Lenguaje Natural (XAI)
+    # 4. Generación de Diagnóstico Enológico en Lenguaje Natural
     explicacion = _generar_explicacion_enologica(muestra, clase_predicha, centroide, detalles_reglas)
 
     return jsonify(

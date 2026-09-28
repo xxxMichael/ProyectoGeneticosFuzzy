@@ -25,7 +25,7 @@ from src.apriori.reglas.asociacion import (
 )
 
 # =============================================================================
-# CONFIGURACIÓN Y PARÁMETROS DEL ALGORITMO APRIORI (EXPUESTOS PARA DEMOSTRACIÓN)
+# CONFIGURACIÓN Y PARÁMETROS DEL ALGORITMO APRIORI
 # =============================================================================
 MIN_SOPORTE: float = 0.02           # Frecuencia mínima relativa en el dataset (2%)
 MIN_CONFIANZA: float = 0.60         # Probabilidad condicional mínima P(Calidad | Antecedente) (60%)

@@ -16,7 +16,7 @@ from src.prism.induccion.selector import buscar_mejor_termino_voraz
 from src.prism.reglas.regla import ReglaPRISM
 
 # =============================================================================
-# CONFIGURACIÓN Y PARÁMETROS DEL ALGORITMO PRISM (EXPUESTOS PARA DEMOSTRACIÓN)
+# CONFIGURACIÓN Y PARÁMETROS DEL ALGORITMO PRISM
 # =============================================================================
 MIN_PRECISION_REGLA: float = 0.60       # Umbral mínimo de pureza/precisión para inducir una regla (60%)
 MIN_INSTANCIAS_CUBIERTAS: int = 5       # Cantidad mínima de ejemplos positivos cubiertos por regla
