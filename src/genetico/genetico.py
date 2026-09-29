@@ -43,6 +43,7 @@ from src.genetico.cromosoma.estructura import (
 )
 from src.genetico.cromosoma.reparacion import reparar_individuo
 from src.genetico.poblacion.inicializacion import (
+    crear_individuo_aleatorio,
     crear_individuo_semilla,
     crear_individuo_perturbado,
 )
@@ -123,11 +124,10 @@ class OptimizadorGeneticoFuzzy:
             creator.create("IndividuoFuzzy", list, fitness=creator.FitnessMax)
 
         toolbox = base.Toolbox()
-        individuo_semilla = crear_individuo_semilla(self.config_mfs_inicial, len(self.reglas_base))
 
         def generar_individuo() -> creator.IndividuoFuzzy:
-            ind_pert = crear_individuo_perturbado(individuo_semilla)
-            return creator.IndividuoFuzzy(ind_pert)
+            ind_aleatorio = crear_individuo_aleatorio(len(self.reglas_base))
+            return creator.IndividuoFuzzy(ind_aleatorio)
 
         toolbox.register("individual", generar_individuo)
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
@@ -167,17 +167,16 @@ class OptimizadorGeneticoFuzzy:
             print(f"\n" + "=" * 80)
             print(f" [ALGORITMO GENETICO] INICIANDO OPTIMIZACION DIFUSA EVOLUTIVA")
             print(f"=" * 80)
-            print(f" * Poblacion: {tamano_poblacion} | Generaciones: {num_generaciones} | Elitismo: {n_elites} individuos | Seleccion: Ruleta")
+            print(f" * Poblacion: {tamano_poblacion} | Generaciones: {num_generaciones} | Elitismo: {n_elites} individuos | Seleccion: Ruleta (Proporcional al Fitness)")
             print(f" * Prob. Cruce: {prob_cruce * 100:.1f}% | Prob. Mutacion: {prob_mutacion * 100:.1f}%")
             print(f" * Ponderaciones Fitness -> F1: {self.peso_f1:.2f} | Cob: {self.peso_cobertura:.2f} | Pen: {self.peso_penalizacion:.2f}")
             print(f" * Cromosoma: {LONGITUD_TOTAL_CROMOSOMA} genes ({LONGITUD_CROMOSOMA_MFS} MFs + {LONGITUD_CROMOSOMA_REGLAS} Reglas)")
+            print(f" * Inicializacion: 100% Aleatoria (Generacion estocastica pura)")
             print("-" * 80)
             print(f"{'Gen':<5} | {'Mejor Fit':<11} | {'Fit Prom':<11} | {'F1-Macro':<10} | {'Cobertura':<10} | {'Reglas Act':<10} | {'Tiempo':<7}")
             print("-" * 80)
 
         poblacion = self.toolbox.population(n=tamano_poblacion)
-        ind_semilla = creator.IndividuoFuzzy(crear_individuo_semilla(self.config_mfs_inicial, len(self.reglas_base)))
-        poblacion[0] = ind_semilla
 
         fitnesses = list(map(self.toolbox.evaluate, poblacion))
         for ind, fit in zip(poblacion, fitnesses):

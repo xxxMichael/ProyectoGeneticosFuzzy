@@ -11,6 +11,7 @@ from src.genetico.cromosoma.estructura import (
 )
 from src.genetico.cromosoma.reparacion import reparar_individuo
 from src.genetico.poblacion.inicializacion import (
+    crear_individuo_aleatorio,
     crear_individuo_perturbado,
     crear_individuo_semilla,
 )
@@ -61,6 +62,7 @@ __all__ = [
     "RUTA_SALIDA_REGLAS_OPTIMIZADAS_JSON",
     "RUTA_SALIDA_HISTORIAL_CONVERGENCIA_CSV",
     "crear_individuo_semilla",
+    "crear_individuo_aleatorio",
     "reparar_individuo",
     "crear_individuo_perturbado",
     "cruzar_individuos_mixtos",

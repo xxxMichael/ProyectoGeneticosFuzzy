@@ -18,6 +18,24 @@ from src.genetico.cromosoma.estructura import (
 from src.genetico.cromosoma.reparacion import reparar_individuo
 
 
+def crear_individuo_aleatorio(num_reglas: int = LONGITUD_CROMOSOMA_REGLAS) -> List[float]:
+    """
+    Genera un individuo 100% aleatorio dentro de los límites físicos del dataset:
+    - 33 genes de MFs: 3 puntos continuos aleatorios en [min_val, max_val] para cada una de las 11 variables.
+    - 26 genes de reglas: pesos continuos aleatorios en [0.0, 1.0].
+    - Se aplica reparación estricta para garantizar que min_i <= a_i < b_i < c_i <= max_i.
+    """
+    cromosoma_mfs: List[float] = []
+    for var in VARIABLES_FISICOQUIMICAS:
+        min_val, max_val = RANGOS_VARIABLES_DEFAULT.get(var, (0.0, 100.0))
+        puntos = [random.uniform(min_val, max_val) for _ in range(3)]
+        cromosoma_mfs.extend(puntos)
+
+    cromosoma_reglas = [random.uniform(0.0, 1.0) for _ in range(num_reglas)]
+    individuo = cromosoma_mfs + cromosoma_reglas
+    return reparar_individuo(individuo)
+
+
 def crear_individuo_semilla(
     config_mfs_inicial: ConfiguracionMFs,
     num_reglas: int = LONGITUD_CROMOSOMA_REGLAS,
