@@ -23,6 +23,7 @@ from src.genetico.fitness.evaluacion import (
     evaluar_individuo_fitness,
 )
 from src.genetico.genetico import (
+    METODO_SELECCION,
     NUM_GENERACIONES,
     PROBABILIDAD_CRUCE,
     PROBABILIDAD_MUTACION,
@@ -33,7 +34,6 @@ from src.genetico.genetico import (
     RUTA_SALIDA_REGLAS_OPTIMIZADAS_JSON,
     SEED_ALEATORIA,
     TAMANO_POBLACION,
-    TAMANO_TORNEO,
     TASA_ELITISMO,
     OptimizadorGeneticoFuzzy,
     ejecutar_smoke_test_fase_10,
@@ -50,7 +50,7 @@ __all__ = [
     "PROBABILIDAD_CRUCE",
     "PROBABILIDAD_MUTACION",
     "TASA_ELITISMO",
-    "TAMANO_TORNEO",
+    "METODO_SELECCION",
     "SEED_ALEATORIA",
     "PESO_F1_MACRO",
     "PESO_COBERTURA",

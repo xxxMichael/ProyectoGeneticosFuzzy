@@ -6,7 +6,7 @@ Proyecto: PRISM + Apriori + Lógica Difusa Mamdani + Algoritmo Genético
 import json
 import os
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import pandas as pd
 from flask import Flask, jsonify, render_template, request, send_from_directory

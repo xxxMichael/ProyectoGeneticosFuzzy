@@ -51,4 +51,7 @@ def evaluar_individuo_fitness(
     tasa_reglas_activas = float(reglas_activas / total_reglas) if total_reglas > 0 else 0.0
     fitness = (peso_f1 * f1_macro) + (peso_cobertura * cobertura) - (peso_penalizacion * tasa_reglas_activas)
 
+    # Asegurar valor estrictamente positivo para compatibilidad con selección por ruleta (fitness-proportionate)
+    fitness = max(1e-4, float(fitness))
+
     return (float(fitness),)

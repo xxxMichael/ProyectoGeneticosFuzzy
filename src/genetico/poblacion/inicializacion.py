@@ -37,7 +37,7 @@ def crear_individuo_perturbado(
     escala_ruido_mfs: float = 0.08,
 ) -> List[float]:
     """
-    Genera un individuo exploratorio aplicando perturbaciones gaussianas sobre el individuo semilla.
+    Genera un individuo exploratorio aplicando perturbaciones aleatorias uniformes sobre el individuo semilla.
     """
     nuevo_ind = list(individuo_semilla)
 
@@ -45,10 +45,10 @@ def crear_individuo_perturbado(
         offset = i * 3
         min_val, max_val = RANGOS_VARIABLES_DEFAULT.get(var, (0.0, 100.0))
         rango = max_val - min_val
-        sigma = escala_ruido_mfs * rango
+        delta = escala_ruido_mfs * rango
 
         for k in range(3):
-            nuevo_ind[offset + k] += random.gauss(0.0, sigma)
+            nuevo_ind[offset + k] += random.uniform(-delta, delta)
 
     for j in range(LONGITUD_CROMOSOMA_MFS, len(nuevo_ind)):
         nuevo_ind[j] = random.uniform(0.2, 1.0)

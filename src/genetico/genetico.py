@@ -71,7 +71,7 @@ NUM_GENERACIONES: int = 30
 PROBABILIDAD_CRUCE: float = 0.80
 PROBABILIDAD_MUTACION: float = 0.25
 TASA_ELITISMO: float = 0.10
-TAMANO_TORNEO: int = 3
+METODO_SELECCION: str = "ruleta"
 SEED_ALEATORIA: int = 42
 # =============================================================================
 
@@ -134,7 +134,7 @@ class OptimizadorGeneticoFuzzy:
 
         toolbox.register("mate", cruzar_individuos_mixtos)
         toolbox.register("mutate", mutar_individuo_mixto)
-        toolbox.register("select", tools.selTournament, tournsize=TAMANO_TORNEO)
+        toolbox.register("select", tools.selRoulette)
 
         def evaluador(ind: List[float]) -> Tuple[float]:
             return evaluar_individuo_fitness(
@@ -167,7 +167,7 @@ class OptimizadorGeneticoFuzzy:
             print(f"\n" + "=" * 80)
             print(f" [ALGORITMO GENETICO] INICIANDO OPTIMIZACION DIFUSA EVOLUTIVA")
             print(f"=" * 80)
-            print(f" * Poblacion: {tamano_poblacion} | Generaciones: {num_generaciones} | Elitismo: {n_elites} individuos")
+            print(f" * Poblacion: {tamano_poblacion} | Generaciones: {num_generaciones} | Elitismo: {n_elites} individuos | Seleccion: Ruleta")
             print(f" * Prob. Cruce: {prob_cruce * 100:.1f}% | Prob. Mutacion: {prob_mutacion * 100:.1f}%")
             print(f" * Ponderaciones Fitness -> F1: {self.peso_f1:.2f} | Cob: {self.peso_cobertura:.2f} | Pen: {self.peso_penalizacion:.2f}")
             print(f" * Cromosoma: {LONGITUD_TOTAL_CROMOSOMA} genes ({LONGITUD_CROMOSOMA_MFS} MFs + {LONGITUD_CROMOSOMA_REGLAS} Reglas)")
