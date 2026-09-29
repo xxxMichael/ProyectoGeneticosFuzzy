@@ -18,8 +18,8 @@ venv/
 .venv/
 ENV/
 env.bak/
-venv.bak/
 *.md
+*.html
 # --- Paquetes y Distribución ---
 build/
 develop-eggs/
