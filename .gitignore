@@ -20,6 +20,7 @@ ENV/
 env.bak/
 *.md
 *.html
+estudio_codigo/
 # --- Paquetes y Distribución ---
 build/
 develop-eggs/
